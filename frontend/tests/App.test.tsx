@@ -7,6 +7,8 @@ describe("App", () => {
   it("renders the application shell", () => {
     render(<App />);
 
-    expect(screen.getByRole("heading", { name: "website" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "portfolio-website" }),
+    ).toBeInTheDocument();
   });
 });

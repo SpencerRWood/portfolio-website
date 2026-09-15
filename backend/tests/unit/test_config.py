@@ -1,6 +1,6 @@
 import pytest
 
-from website.config import Environment, Settings
+from portfolio_website.config import Environment, Settings
 
 
 def test_development_can_use_wood_data_platform_database() -> None:
@@ -24,9 +24,9 @@ def test_production_uses_explicit_database_url() -> None:
     settings = Settings.from_environment(
         {
             "WEBSITE_ENV": "production",
-            "DATABASE_URL": "postgresql://production-host/website",
+            "DATABASE_URL": "postgresql://production-host/portfolio_website",
         }
     )
 
     assert settings.environment is Environment.PRODUCTION
-    assert settings.database_url == "postgresql://production-host/website"
+    assert settings.database_url == "postgresql://production-host/portfolio_website"

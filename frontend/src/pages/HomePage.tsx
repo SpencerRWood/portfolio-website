@@ -17,7 +17,7 @@ export function HomePage() {
 
   return (
     <main>
-      <h1>website</h1>
+      <h1>portfolio-website</h1>
       <p>Portfolio application foundation</p>
       <button type="button" onClick={checkBackendHealth}>
         Check backend health
