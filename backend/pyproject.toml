@@ -3,7 +3,7 @@ requires = ["hatchling>=1.27"]
 build-backend = "hatchling.build"
 
 [project]
-name = "website"
+name = "portfolio-website"
 version = "0.0.1"
 description = "A minimal FastAPI and React full-stack template baseline."
 readme = "README.md"
@@ -37,7 +37,7 @@ dev = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/website"]
+packages = ["src/portfolio_website"]
 
 [tool.hatch.build.targets.sdist]
 exclude = [
@@ -54,7 +54,7 @@ testpaths = ["tests"]
 
 [tool.coverage.run]
 branch = true
-source = ["website"]
+source = ["portfolio_website"]
 
 [tool.coverage.report]
 fail_under = 90

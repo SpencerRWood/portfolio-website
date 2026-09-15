@@ -1,4 +1,4 @@
-# website
+# portfolio-website
 
 A thin full-stack template with a FastAPI backend, a React + TypeScript
 frontend, `uv`, Vite, Ruff, mypy, pytest, ESLint, Prettier, Vitest,
@@ -16,7 +16,7 @@ minimal.
 
 ```text
 backend/
-  src/website/
+  src/portfolio_website/
     api/routes/
     models/
     services/
@@ -83,7 +83,7 @@ uv build
 Run the backend locally:
 
 ```sh
-uv run uvicorn website.main:app --reload
+uv run uvicorn portfolio_website.main:app --reload
 ```
 
 ## Frontend Setup
@@ -178,11 +178,11 @@ separate frontend/backend release tracks.
 
 After copying this template, replace these names everywhere:
 
-- repository/distribution name: `website`
-- Python package name: `website`
-- npm package name: `website`
-- FastAPI title: `website`
-- frontend page title: `website`
+- repository/distribution name: `portfolio-website`
+- Python package name: `portfolio_website`
+- npm package name: `portfolio-website`
+- FastAPI title: `portfolio-website`
+- frontend page title: `portfolio-website`
 
 Then update package metadata, refresh locks with `uv lock` and `npm install`,
 and run the backend, frontend, pre-commit, and Docker Compose validation

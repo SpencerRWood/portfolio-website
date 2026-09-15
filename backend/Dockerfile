@@ -1,7 +1,7 @@
 FROM python:3.14-slim
 
-ENV UV_PROJECT_ENVIRONMENT=/opt/website-backend-venv
-ENV PATH="/opt/website-backend-venv/bin:${PATH}"
+ENV UV_PROJECT_ENVIRONMENT=/opt/portfolio-website-backend-venv
+ENV PATH="/opt/portfolio-website-backend-venv/bin:${PATH}"
 
 WORKDIR /app/backend
 
@@ -12,4 +12,4 @@ COPY tests ./tests
 RUN pip install --no-cache-dir uv \
     && uv sync --frozen --group dev
 
-CMD ["uv", "run", "uvicorn", "website.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+CMD ["uv", "run", "uvicorn", "portfolio_website.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
