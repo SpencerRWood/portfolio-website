@@ -21,6 +21,7 @@ classifiers = [
 ]
 dependencies = [
   "fastapi",
+  "jinja2",
   "uvicorn[standard]",
 ]
 

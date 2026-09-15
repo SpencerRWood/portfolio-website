@@ -695,6 +695,7 @@ version = "0.0.0"
 source = { editable = "." }
 dependencies = [
     { name = "fastapi" },
+    { name = "jinja2" },
     { name = "uvicorn", extra = ["standard"] },
 ]
 
@@ -713,6 +714,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "fastapi" },
+    { name = "jinja2" },
     { name = "uvicorn", extras = ["standard"] },
 ]
 

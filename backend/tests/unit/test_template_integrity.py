@@ -26,7 +26,7 @@ def test_template_project_metadata_describes_scaffold() -> None:
         == "A minimal FastAPI and React full-stack template baseline."
     )
     assert project["requires-python"] == ">=3.14"
-    assert project["dependencies"] == ["fastapi", "uvicorn[standard]"]
+    assert project["dependencies"] == ["fastapi", "jinja2", "uvicorn[standard]"]
 
 
 def test_template_declares_typed_src_package() -> None:
