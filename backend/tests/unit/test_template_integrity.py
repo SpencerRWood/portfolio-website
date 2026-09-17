@@ -16,7 +16,7 @@ def test_package_can_be_imported() -> None:
     assert package.__all__ == ()
 
 
-def test_template_project_metadata_describes_scaffold() -> None:
+def test_project_metadata_describes_contact_lead_capture_runtime() -> None:
     pyproject = load_pyproject()
     project = pyproject["project"]
 
@@ -26,7 +26,14 @@ def test_template_project_metadata_describes_scaffold() -> None:
         == "A minimal FastAPI and React full-stack template baseline."
     )
     assert project["requires-python"] == ">=3.14"
-    assert project["dependencies"] == ["fastapi", "jinja2", "uvicorn[standard]"]
+    assert project["dependencies"] == [
+        "alembic",
+        "fastapi",
+        "jinja2",
+        "psycopg[binary]",
+        "sqlalchemy",
+        "uvicorn[standard]",
+    ]
 
 
 def test_template_declares_typed_src_package() -> None:

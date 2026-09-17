@@ -1,11 +1,13 @@
 import { useState } from "react";
 
-import { requestBackend } from "../api/client";
+import { requestBackend, submitContact } from "../api/client";
 import { PortfolioSection } from "../components/PortfolioSection";
 import { portfolioSections } from "../content/sections";
 
 export function HomePage() {
   const [healthStatus, setHealthStatus] = useState<string | null>(null);
+  const [contactStatus, setContactStatus] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function checkBackendHealth() {
     setHealthStatus("Checking backend health…");
@@ -14,6 +16,26 @@ export function HomePage() {
       setHealthStatus(`Backend status: ${response.status}`);
     } catch {
       setHealthStatus("Backend health check failed.");
+    }
+  }
+
+  async function submitContactForm(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    setIsSubmitting(true);
+    setContactStatus(null);
+    try {
+      await submitContact({
+        name: String(form.get("name") ?? ""),
+        email: String(form.get("email") ?? ""),
+        message: String(form.get("message") ?? ""),
+      });
+      event.currentTarget.reset();
+      setContactStatus("Thanks — your message has been sent.");
+    } catch {
+      setContactStatus("Your message could not be sent. Please try again later.");
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
@@ -57,7 +79,30 @@ export function HomePage() {
       </section>
       <section id="contact">
         <h2>Contact</h2>
-        <p>Contact options will be added in the dedicated lead-capture story.</p>
+        <form onSubmit={submitContactForm}>
+          <p>
+            <label htmlFor="contact-name">Name</label>
+            <input id="contact-name" name="name" required maxLength={120} />
+          </p>
+          <p>
+            <label htmlFor="contact-email">Email</label>
+            <input
+              id="contact-email"
+              name="email"
+              type="email"
+              required
+              maxLength={254}
+            />
+          </p>
+          <p>
+            <label htmlFor="contact-message">Message</label>
+            <textarea id="contact-message" name="message" required maxLength={5000} />
+          </p>
+          <button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? "Sending…" : "Send message"}
+          </button>
+        </form>
+        {contactStatus ? <p role="status">{contactStatus}</p> : null}
       </section>
       <button type="button" onClick={checkBackendHealth}>
         Check backend health
