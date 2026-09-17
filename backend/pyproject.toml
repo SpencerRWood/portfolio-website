@@ -20,8 +20,11 @@ classifiers = [
   "Typing :: Typed",
 ]
 dependencies = [
+  "alembic",
   "fastapi",
   "jinja2",
+  "psycopg[binary]",
+  "sqlalchemy",
   "uvicorn[standard]",
 ]
 
@@ -35,6 +38,7 @@ dev = [
   "pytest-cov",
   "python-semantic-release",
   "ruff",
+  "httpx2>=2.13.0",
 ]
 
 [tool.hatch.build.targets.wheel]

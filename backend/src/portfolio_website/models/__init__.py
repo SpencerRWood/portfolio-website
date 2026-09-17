@@ -1,3 +1,5 @@
-"""Request and response model placeholders."""
+"""Database and API models."""
 
-__all__: tuple[str, ...] = ()
+from portfolio_website.models.contact import Base, ContactSubmission
+
+__all__ = ("Base", "ContactSubmission")
