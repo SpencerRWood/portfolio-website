@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.4.0 (2026-09-18)
+
+### Features
+
+- Implement portfolio visual design system
+  ([`22e9d20`](https://github.com/SpencerRWood/portfolio-website/commit/22e9d204f8765dd29dbf961ec6a4da4e4757d77d))
+
+
 ## v0.3.0 (2026-09-18)
 
 ### Features
