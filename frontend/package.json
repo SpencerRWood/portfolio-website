@@ -14,9 +14,14 @@
   },
   "dependencies": {
     "@rudderstack/analytics-js": "^3.34.0",
+    "@fontsource-variable/inter": "^5.2.6",
+    "@fontsource/ibm-plex-mono": "^5.2.6",
+    "@fontsource/ibm-plex-sans": "^5.2.6",
+    "@tailwindcss/vite": "^4.2.1",
     "@vitejs/plugin-react": "^5.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "tailwindcss": "^4.2.1",
     "vite": "^7.0.0"
   },
   "devDependencies": {
