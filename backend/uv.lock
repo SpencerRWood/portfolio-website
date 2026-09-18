@@ -794,12 +794,11 @@ wheels = [
 
 [[package]]
 name = "portfolio-website"
-version = "0.1.0"
+version = "0.4.0"
 source = { editable = "." }
 dependencies = [
     { name = "alembic" },
     { name = "fastapi" },
-    { name = "jinja2" },
     { name = "psycopg", extra = ["binary"] },
     { name = "sqlalchemy" },
     { name = "uvicorn", extra = ["standard"] },
@@ -822,7 +821,6 @@ dev = [
 requires-dist = [
     { name = "alembic" },
     { name = "fastapi" },
-    { name = "jinja2" },
     { name = "psycopg", extras = ["binary"] },
     { name = "sqlalchemy" },
     { name = "uvicorn", extras = ["standard"] },

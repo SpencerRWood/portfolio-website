@@ -24,6 +24,16 @@ describe("App", () => {
     expect(navigation).toHaveTextContent("Writing");
     expect(navigation).toHaveTextContent("Projects");
     expect(navigation).toHaveTextContent("About");
-    expect(navigation).not.toHaveTextContent("Portfolio");
+    expect(document.body).not.toHaveTextContent(/portfolio/i);
+  });
+
+  it("renders topic, selected writing, and project content", () => {
+    render(<App />);
+
+    expect(screen.getByText("Data Generation")).toBeInTheDocument();
+    expect(screen.getByText("Designing events as data contracts")).toBeInTheDocument();
+    expect(
+      screen.getByText("Synthetic Website Analytics Platform"),
+    ).toBeInTheDocument();
   });
 });

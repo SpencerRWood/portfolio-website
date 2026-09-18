@@ -9,34 +9,9 @@ import {
 } from "../analytics/events";
 import { submitContact } from "../api/client";
 import { TopicList } from "../components/TopicList";
+import { projects } from "../content/projects";
 import { topics } from "../content/topics";
-
-const writing = [
-  "Designing events as data contracts",
-  "Simulating realistic website traffic",
-  "Structuring a dbt project",
-  "Building reusable analytical reporting",
-];
-
-const projects = [
-  {
-    title: "Synthetic Website Analytics Platform",
-    summary:
-      "A simulated website analytics system covering event generation, dbt modeling, analysis, and reporting.",
-    href: "https://github.com/SpencerRWood/synthetic-website-analytics-platform",
-  },
-  {
-    title: "wood-charts",
-    summary: "A small charting library for consistent analytical graphics.",
-    href: "https://github.com/SpencerRWood/wood-charts",
-  },
-  {
-    title: "wood-reports",
-    summary:
-      "A reporting system for turning analysis into reusable presentation and document outputs.",
-    href: "https://github.com/SpencerRWood/wood-reports",
-  },
-];
+import { writing } from "../content/writing";
 
 function SectionHeading({
   eyebrow,
@@ -200,14 +175,14 @@ export function HomePage() {
           copy="A few deeper pieces on specific problems."
         />
         <div className="border-t border-black/20">
-          {writing.map((title) => (
+          {writing.map((entry) => (
             <a
-              key={title}
+              key={entry.slug}
               className="flex items-center justify-between gap-6 border-b border-black/15 py-5 font-display text-xl font-medium tracking-[-0.025em] transition-colors hover:text-black/55 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-black md:text-2xl"
-              href="#writing"
+              href={entry.href ?? "#writing"}
               onClick={() => trackNavigation("writing")}
             >
-              {title}{" "}
+              {entry.title}{" "}
               <span className="font-mono text-sm text-black/45" aria-hidden="true">
                 →
               </span>
@@ -236,7 +211,7 @@ export function HomePage() {
         <div className="border-t border-black/20">
           {projects.map((project) => (
             <article
-              key={project.title}
+              key={project.slug}
               className="grid gap-4 border-b border-black/15 py-7 md:grid-cols-[minmax(0,1fr)_minmax(16rem,0.8fr)] md:gap-8"
             >
               <h3 className="font-display text-2xl font-semibold tracking-[-0.035em] md:text-3xl">
