@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import {
   getContentIndex,
@@ -9,7 +9,7 @@ import {
   type SiteNavigationItem,
   type SitePage,
 } from "../api/client";
-import { trackPageView } from "../analytics/events";
+import { trackPageView, type PageType } from "../analytics/events";
 import { ContactForm } from "../components/ContactForm";
 import { BlogArticle } from "../components/blog/BlogArticle";
 import { BlogIndex } from "../components/blog/BlogIndex";
@@ -17,6 +17,12 @@ import { SiteLayout } from "../components/layout/SiteLayout";
 
 type Section = ContentPage["section"];
 type SiteSlug = "topics" | "blog" | "projects" | "contact" | "about";
+
+function contentPageType(section: Section): PageType {
+  if (section === "blog") return "blog_article";
+  if (section === "topics") return "topic";
+  return "project";
+}
 
 function useNavigation() {
   const [navigation, setNavigation] = useState<SiteNavigationItem[]>([]);
@@ -76,13 +82,23 @@ export function SectionIndexPage({
   const [error, setError] = useState(false);
   const navigation = useNavigation();
   const topics = useTopics();
+  const trackedPage = useRef<string | null>(null);
 
   useEffect(() => {
-    trackPageView();
     void Promise.all([getSitePage(section), getContentIndex(section)])
       .then(([nextSitePage, nextPages]) => {
         setSitePage(nextSitePage);
         setPages(nextPages);
+        const pageKey = `section_index:${nextSitePage.slug}`;
+        if (trackedPage.current !== pageKey) {
+          trackedPage.current = pageKey;
+          trackPageView({
+            pageType: "section_index",
+            pageSlug: nextSitePage.slug,
+            pageTitle: nextSitePage.title,
+            section,
+          });
+        }
       })
       .catch(() => setError(true));
   }, [section]);
@@ -133,11 +149,23 @@ export function ArticlePage({
   const [error, setError] = useState(false);
   const navigation = useNavigation();
   const topics = useTopics();
+  const trackedPage = useRef<string | null>(null);
 
   useEffect(() => {
-    trackPageView();
     void getContentPage(section, slug)
-      .then(setPage)
+      .then((nextPage) => {
+        setPage(nextPage);
+        const pageKey = `${nextPage.section}:${nextPage.slug}`;
+        if (trackedPage.current !== pageKey) {
+          trackedPage.current = pageKey;
+          trackPageView({
+            pageType: contentPageType(nextPage.section),
+            pageSlug: nextPage.slug,
+            pageTitle: nextPage.title,
+            section: nextPage.section,
+          });
+        }
+      })
       .catch(() => setError(true));
   }, [section, slug]);
 
@@ -186,11 +214,22 @@ export function StaticPage({
   const [error, setError] = useState(false);
   const navigation = useNavigation();
   const topics = useTopics();
+  const trackedPage = useRef<string | null>(null);
 
   useEffect(() => {
-    trackPageView();
     void getSitePage(slug)
-      .then(setPage)
+      .then((nextPage) => {
+        setPage(nextPage);
+        const pageKey = `static_page:${nextPage.slug}`;
+        if (trackedPage.current !== pageKey) {
+          trackedPage.current = pageKey;
+          trackPageView({
+            pageType: "static_page",
+            pageSlug: nextPage.slug,
+            pageTitle: nextPage.title,
+          });
+        }
+      })
       .catch(() => setError(true));
   }, [slug]);
 

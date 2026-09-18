@@ -3,8 +3,10 @@ from pathlib import Path
 import pytest
 
 from portfolio_website.content.loader import (
+    SLUG_PATTERN,
     ContentError,
     ContentLoader,
+    load_site_content,
     parse_front_matter,
 )
 
@@ -73,6 +75,35 @@ Placeholder.
 
     with pytest.raises(ContentError, match="Duplicate content slug"):
         ContentLoader(tmp_path).discover()
+
+
+def test_loader_rejects_slug_that_is_not_lowercase_kebab_case(tmp_path: Path) -> None:
+    write_page(
+        tmp_path,
+        "topics",
+        "invalid.md.j2",
+        """---
+title: Invalid
+slug: Data Generation
+section: topics
+summary: A test topic.
+---
+
+Placeholder.
+""",
+    )
+
+    with pytest.raises(ContentError, match="lowercase kebab-case"):
+        ContentLoader(tmp_path).discover()
+
+
+def test_production_content_supplies_analytics_metadata() -> None:
+    pages = load_site_content()
+
+    assert pages
+    assert all(page.title and page.slug and page.section for page in pages)
+    assert all(SLUG_PATTERN.fullmatch(page.slug) for page in pages)
+    assert all(page.published is not None for page in pages if page.section == "blog")
 
 
 def test_loader_sorts_content_by_section_then_order(tmp_path: Path) -> None:

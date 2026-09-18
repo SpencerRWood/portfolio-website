@@ -1,5 +1,6 @@
 """Discovery and validation for Jinja2-backed Markdown content."""
 
+import re
 from collections.abc import Iterable
 from dataclasses import replace
 from datetime import date
@@ -22,6 +23,7 @@ from portfolio_website.content.renderer import render_document, render_markdown
 
 CONTENT_SECTIONS: tuple[ContentSection, ...] = ("topics", "blog", "projects")
 CONTENT_ROOT = Path(__file__).parent
+SLUG_PATTERN = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
 
 
 class ContentError(ValueError):
@@ -74,6 +76,13 @@ def _required_string(metadata: dict[str, Any], field: str, path: Path) -> str:
     if not isinstance(value, str) or not value:
         raise ContentError(f"{path}: {field} must be a non-empty string.")
     return value
+
+
+def _required_slug(metadata: dict[str, Any], path: Path) -> str:
+    slug = _required_string(metadata, "slug", path)
+    if not SLUG_PATTERN.fullmatch(slug):
+        raise ContentError(f"{path}: slug must use lowercase kebab-case.")
+    return slug
 
 
 def _optional_bool(metadata: dict[str, Any], field: str, path: Path) -> bool:
@@ -158,7 +167,7 @@ class ContentLoader:
         page_type = _page_type(typed_section)
         return page_type(
             title=_required_string(metadata, "title", path),
-            slug=_required_string(metadata, "slug", path),
+            slug=_required_slug(metadata, path),
             section=typed_section,
             summary=_required_string(metadata, "summary", path),
             body_html="",
