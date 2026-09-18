@@ -2,11 +2,21 @@ import type { PortfolioSection as PortfolioSectionContent } from "../content/sec
 
 interface PortfolioSectionProps {
   section: PortfolioSectionContent;
+  onEngage: (sectionSlug: string) => void;
+  onOutboundReference: (sectionSlug: string, referenceLabel: string) => void;
 }
 
-export function PortfolioSection({ section }: PortfolioSectionProps) {
+export function PortfolioSection({
+  section,
+  onEngage,
+  onOutboundReference,
+}: PortfolioSectionProps) {
   return (
-    <article id={section.slug}>
+    <article
+      id={section.slug}
+      onMouseEnter={() => onEngage(section.slug)}
+      onFocus={() => onEngage(section.slug)}
+    >
       <h2>{section.title}</h2>
       <p>{section.objective}</p>
       <h3>Conceptual model</h3>
@@ -27,7 +37,12 @@ export function PortfolioSection({ section }: PortfolioSectionProps) {
       <ul>
         {section.references.map((reference) => (
           <li key={reference.href}>
-            <a href={reference.href}>{reference.label}</a>
+            <a
+              href={reference.href}
+              onClick={() => onOutboundReference(section.slug, reference.label)}
+            >
+              {reference.label}
+            </a>
           </li>
         ))}
       </ul>

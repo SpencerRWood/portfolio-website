@@ -1,5 +1,12 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
+import {
+  trackContactConversion,
+  trackNavigation,
+  trackOutboundReference,
+  trackPageView,
+  trackSectionEngagement,
+} from "../analytics/events";
 import { requestBackend, submitContact } from "../api/client";
 import { PortfolioSection } from "../components/PortfolioSection";
 import { portfolioSections } from "../content/sections";
@@ -8,6 +15,18 @@ export function HomePage() {
   const [healthStatus, setHealthStatus] = useState<string | null>(null);
   const [contactStatus, setContactStatus] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const engagedSections = useRef(new Set<string>());
+
+  useEffect(() => {
+    trackPageView();
+  }, []);
+
+  function trackFirstSectionEngagement(sectionSlug: string) {
+    if (!engagedSections.current.has(sectionSlug)) {
+      engagedSections.current.add(sectionSlug);
+      trackSectionEngagement(sectionSlug);
+    }
+  }
 
   async function checkBackendHealth() {
     setHealthStatus("Checking backend health…");
@@ -32,6 +51,7 @@ export function HomePage() {
       });
       event.currentTarget.reset();
       setContactStatus("Thanks — your message has been sent.");
+      trackContactConversion();
     } catch {
       setContactStatus("Your message could not be sent. Please try again later.");
     } finally {
@@ -51,14 +71,23 @@ export function HomePage() {
           <ul>
             {portfolioSections.map((section) => (
               <li key={section.slug}>
-                <a href={`#${section.slug}`}>{section.title}</a>
+                <a
+                  href={`#${section.slug}`}
+                  onClick={() => trackNavigation(section.slug)}
+                >
+                  {section.title}
+                </a>
               </li>
             ))}
             <li>
-              <a href="#about">About</a>
+              <a href="#about" onClick={() => trackNavigation("about")}>
+                About
+              </a>
             </li>
             <li>
-              <a href="#contact">Contact</a>
+              <a href="#contact" onClick={() => trackNavigation("contact")}>
+                Contact
+              </a>
             </li>
           </ul>
         </nav>
@@ -71,7 +100,12 @@ export function HomePage() {
         </p>
       </section>
       {portfolioSections.map((section) => (
-        <PortfolioSection key={section.slug} section={section} />
+        <PortfolioSection
+          key={section.slug}
+          section={section}
+          onEngage={trackFirstSectionEngagement}
+          onOutboundReference={trackOutboundReference}
+        />
       ))}
       <section id="about">
         <h2>About</h2>

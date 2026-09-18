@@ -5,7 +5,7 @@ ENV PATH="/opt/portfolio-website-backend-venv/bin:${PATH}"
 
 WORKDIR /app/backend
 
-COPY pyproject.toml uv.lock .python-version ./
+COPY pyproject.toml uv.lock .python-version README.md ./
 COPY src ./src
 COPY tests ./tests
 
