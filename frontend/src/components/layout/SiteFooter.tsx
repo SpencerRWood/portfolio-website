@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 
-import { trackNavigation } from "../analytics/events";
+import { trackNavigation } from "../../analytics/events";
 import {
   getFooterNavigation,
   type ContentPage,
   type FooterNavigation,
-} from "../api/client";
+} from "../../api/client";
 
 export function SiteFooter({ topics }: { topics: ContentPage[] }) {
   const [navigation, setNavigation] = useState<FooterNavigation | null>(null);

@@ -196,7 +196,7 @@ class ContentLoader:
 
     @staticmethod
     def _sort_key(page: ContentPage) -> tuple[str, int, int, int, str]:
-        """Keep authored order except for blog indexes, which are chronological."""
+        """Order blog by publication date; use authored order for other content."""
         if page.section == "blog":
             published_rank = page.published.toordinal() if page.published else -1
             return (page.section, 0, -published_rank, page.order, page.title)

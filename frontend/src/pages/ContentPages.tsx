@@ -9,50 +9,14 @@ import {
   type SiteNavigationItem,
   type SitePage,
 } from "../api/client";
-import { trackNavigation, trackPageView } from "../analytics/events";
+import { trackPageView } from "../analytics/events";
 import { ContactForm } from "../components/ContactForm";
 import { BlogArticle } from "../components/blog/BlogArticle";
 import { BlogIndex } from "../components/blog/BlogIndex";
-import { SiteFooter } from "../components/SiteFooter";
+import { SiteLayout } from "../components/layout/SiteLayout";
 
 type Section = ContentPage["section"];
 type SiteSlug = "topics" | "blog" | "projects" | "contact" | "about";
-
-function PageHeader({ navigation }: { navigation: SiteNavigationItem[] }) {
-  return (
-    <header className="border-b border-black/20 py-6 md:py-8">
-      <div className="flex items-center justify-between gap-5">
-        <a
-          className="font-mono text-xs font-medium tracking-[0.14em] uppercase transition-opacity hover:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-black"
-          href="/"
-        >
-          Spencer Wood
-        </a>
-        <a
-          className="font-mono text-[0.68rem] tracking-[0.12em] text-black/55 uppercase transition-colors hover:text-black"
-          href="https://github.com/SpencerRWood"
-        >
-          GitHub ↗
-        </a>
-      </div>
-      <nav className="mt-7 overflow-x-auto pb-1" aria-label="Primary navigation">
-        <ul className="flex w-max items-center gap-x-6 font-mono text-xs tracking-[0.08em] uppercase md:gap-x-8">
-          {navigation.map(({ title, destination }) => (
-            <li key={destination}>
-              <a
-                className="whitespace-nowrap text-black/65 transition-colors hover:text-black focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-black"
-                href={destination}
-                onClick={() => trackNavigation(destination)}
-              >
-                {title}
-              </a>
-            </li>
-          ))}
-        </ul>
-      </nav>
-    </header>
-  );
-}
 
 function useNavigation() {
   const [navigation, setNavigation] = useState<SiteNavigationItem[]>([]);
@@ -124,8 +88,7 @@ export function SectionIndexPage({
   }, [section]);
 
   return (
-    <main className="mx-auto max-w-7xl px-5 pb-16 sm:px-8 lg:px-12">
-      <PageHeader navigation={navigation} />
+    <SiteLayout navigation={navigation} topics={topics}>
       {sitePage ? (
         section === "blog" ? (
           <BlogIndex page={sitePage} posts={pages} topics={topics} />
@@ -153,8 +116,7 @@ export function SectionIndexPage({
       ) : (
         <LoadingOrError error={error} />
       )}
-      <SiteFooter topics={topics} />
-    </main>
+    </SiteLayout>
   );
 }
 
@@ -180,8 +142,7 @@ export function ArticlePage({
   }, [section, slug]);
 
   return (
-    <main className="mx-auto max-w-7xl px-5 pb-16 sm:px-8 lg:px-12">
-      <PageHeader navigation={navigation} />
+    <SiteLayout navigation={navigation} topics={topics}>
       {page && section === "blog" ? (
         <BlogArticle page={page} topics={topics} />
       ) : page ? (
@@ -212,8 +173,7 @@ export function ArticlePage({
       ) : (
         <LoadingOrError error={error} />
       )}
-      <SiteFooter topics={topics} />
-    </main>
+    </SiteLayout>
   );
 }
 
@@ -235,8 +195,7 @@ export function StaticPage({
   }, [slug]);
 
   return (
-    <main className="mx-auto max-w-7xl px-5 pb-16 sm:px-8 lg:px-12">
-      <PageHeader navigation={navigation} />
+    <SiteLayout navigation={navigation} topics={topics}>
       {page ? (
         <section className="max-w-3xl py-16 md:py-24">
           <Intro page={page} />
@@ -245,7 +204,6 @@ export function StaticPage({
       ) : (
         <LoadingOrError error={error} />
       )}
-      <SiteFooter topics={topics} />
-    </main>
+    </SiteLayout>
   );
 }

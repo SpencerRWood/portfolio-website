@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 
 import {
   trackNavigation,
-  trackOutboundReference,
   trackPageView,
   trackTopicEngagement,
 } from "../analytics/events";
@@ -10,7 +9,7 @@ import { getHomepageContent, type HomepageContent } from "../api/client";
 import { ContactForm } from "../components/ContactForm";
 import { formatPublishedDate, topicName } from "../components/blog/blogMetadata";
 import { TopicList } from "../components/TopicList";
-import { SiteFooter } from "../components/SiteFooter";
+import { SiteLayout } from "../components/layout/SiteLayout";
 
 function SectionHeading({
   eyebrow,
@@ -57,40 +56,7 @@ export function HomePage() {
   }
 
   return (
-    <main className="mx-auto max-w-7xl px-5 pb-16 sm:px-8 lg:px-12">
-      <header className="border-b border-black/20 py-6 md:py-8">
-        <div className="flex items-center justify-between gap-5">
-          <a
-            className="font-mono text-xs font-medium tracking-[0.14em] uppercase transition-opacity hover:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-black"
-            href="#top"
-          >
-            {homepage?.identity}
-          </a>
-          <a
-            className="font-mono text-[0.68rem] tracking-[0.12em] text-black/55 uppercase transition-colors hover:text-black focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-black"
-            href="https://github.com/SpencerRWood"
-            onClick={() => trackOutboundReference("header", "GitHub")}
-          >
-            GitHub ↗
-          </a>
-        </div>
-        <nav className="mt-7 overflow-x-auto pb-1" aria-label="Primary navigation">
-          <ul className="flex w-max items-center gap-x-6 font-mono text-xs tracking-[0.08em] uppercase md:gap-x-8">
-            {(content?.navigation ?? []).map(({ title, destination }) => (
-              <li key={destination}>
-                <a
-                  className="whitespace-nowrap text-black/65 transition-colors hover:text-black focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-black"
-                  href={destination}
-                  onClick={() => trackNavigation(destination)}
-                >
-                  {title}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </nav>
-      </header>
-
+    <SiteLayout navigation={content?.navigation ?? []} topics={content?.topics ?? []}>
       <section
         id="top"
         className="grid gap-8 py-16 md:grid-cols-[minmax(0,1fr)_13rem] md:gap-16 md:py-24"
@@ -154,7 +120,7 @@ export function HomePage() {
           copy={homepage?.blog_summary ?? ""}
         />
         <div className="border-t border-black/20">
-          {(content?.blog.filter((entry) => entry.featured) ?? []).map((entry) => (
+          {(content?.blog.slice(0, 3) ?? []).map((entry) => (
             <a
               key={entry.slug}
               className="group grid gap-2 border-b border-black/15 py-6 transition-colors focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-black md:grid-cols-[11rem_minmax(0,1fr)_auto] md:items-baseline md:gap-6"
@@ -183,7 +149,7 @@ export function HomePage() {
           href="/blog"
           onClick={() => trackNavigation("/blog")}
         >
-          View all blog posts <span aria-hidden="true">→</span>
+          View all writing <span aria-hidden="true">→</span>
         </a>
       </section>
 
@@ -277,7 +243,6 @@ export function HomePage() {
           <ContactForm />
         </div>
       </section>
-      <SiteFooter topics={content?.topics ?? []} />
-    </main>
+    </SiteLayout>
   );
 }

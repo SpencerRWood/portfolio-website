@@ -88,7 +88,7 @@ def test_loader_sorts_content_by_section_then_order(tmp_path: Path) -> None:
     ]
 
 
-def test_loader_sorts_blog_entries_by_newest_publication_date(tmp_path: Path) -> None:
+def test_blog_dates_determine_order_not_featured_or_order(tmp_path: Path) -> None:
     write_page(
         tmp_path,
         "blog",
@@ -97,9 +97,10 @@ def test_loader_sorts_blog_entries_by_newest_publication_date(tmp_path: Path) ->
 title: Older
 slug: older
 section: blog
-order: 10
+order: 999
 published: 2026-01-01
 summary: An older post.
+featured: true
 ---
 
 Older.
@@ -113,9 +114,10 @@ Older.
 title: Newer
 slug: newer
 section: blog
-order: 20
+order: 1
 published: 2026-09-18
 summary: A newer post.
+featured: false
 ---
 
 Newer.

@@ -1,6 +1,6 @@
 import type { ContentPage, SitePage } from "../../api/client";
 
-import { formatPublishedDate } from "./blogMetadata";
+import { formatPublishedDate, selectFeaturedPost } from "./blogMetadata";
 import { TopicLinks } from "./TopicLinks";
 
 interface BlogIndexProps {
@@ -18,32 +18,30 @@ function PostDate({ value }: { value: string | null }) {
 }
 
 function FeaturedVisual({ post }: { post: ContentPage }) {
+  const primaryTopic = post.topics[0]?.replaceAll("-", " ") ?? "Writing";
+
   return (
-    <div
-      className="relative min-h-64 overflow-hidden border border-black/20 bg-black/[0.025] p-6 md:min-h-full"
-      aria-label={`Editorial motif for ${post.title}`}
-    >
-      <div className="absolute inset-5 border border-black/15" aria-hidden="true" />
-      <div
-        className="absolute top-10 right-8 h-20 w-20 border border-black/25"
-        aria-hidden="true"
-      />
-      <div
-        className="absolute bottom-8 left-8 h-28 w-28 border border-black/25"
-        aria-hidden="true"
-      />
-      <p className="relative font-mono text-xs tracking-[0.2em] text-black/45 uppercase">
-        Field notes
-      </p>
-      <p className="absolute right-6 bottom-5 font-display text-7xl font-semibold tracking-[-0.08em] text-black/10">
-        01
+    <div className="flex min-h-64 flex-col justify-between border border-black/20 bg-black/[0.025] p-6 md:min-h-full md:p-8">
+      <div className="flex items-start justify-between gap-4 border-b border-black/15 pb-4">
+        <p className="font-mono text-[0.68rem] tracking-[0.16em] text-black/55 uppercase">
+          {primaryTopic}
+        </p>
+        <p className="font-mono text-xs tracking-[0.12em] text-black/45">01</p>
+      </div>
+      <div className="py-8">
+        <p className="font-display text-2xl leading-tight font-semibold tracking-[-0.04em] text-black/80 md:text-3xl">
+          {post.title}
+        </p>
+      </div>
+      <p className="border-t border-black/15 pt-4 font-mono text-[0.68rem] tracking-[0.12em] text-black/55 uppercase">
+        <PostDate value={post.published} />
       </p>
     </div>
   );
 }
 
 export function BlogIndex({ page, posts, topics }: BlogIndexProps) {
-  const [featured] = posts;
+  const featured = selectFeaturedPost(posts);
   const representedTopics = topics.filter((topic) =>
     posts.some((post) => post.topics.includes(topic.slug)),
   );
