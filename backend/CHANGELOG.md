@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.3.0 (2026-09-18)
+
+### Features
+
+- Implement application event instrumentation
+  ([`4231616`](https://github.com/SpencerRWood/portfolio-website/commit/42316160d67c40d86bdccca6f131c17d42a1e2ab))
+
+
 ## v0.2.0 (2026-09-17)
 
 ### Features
