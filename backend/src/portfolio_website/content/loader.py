@@ -251,7 +251,7 @@ def load_site_page(slug: str) -> SitePage:
     metadata, markdown_source = parse_front_matter(
         path.read_text(encoding="utf-8"), path
     )
-    if _required_string(metadata, "slug", path) != slug:
+    if _required_slug(metadata, path) != slug:
         raise ContentError(f"{path}: slug must match its filename.")
     return SitePage(
         title=_required_string(metadata, "title", path),

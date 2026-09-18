@@ -2,6 +2,7 @@ from pathlib import Path
 
 import pytest
 
+from portfolio_website.content import loader as content_loader
 from portfolio_website.content.loader import (
     SLUG_PATTERN,
     ContentError,
@@ -104,6 +105,73 @@ def test_production_content_supplies_analytics_metadata() -> None:
     assert all(page.title and page.slug and page.section for page in pages)
     assert all(SLUG_PATTERN.fullmatch(page.slug) for page in pages)
     assert all(page.published is not None for page in pages if page.section == "blog")
+
+
+def test_site_page_accepts_a_valid_analytics_slug(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    write_page(
+        tmp_path,
+        "site",
+        "about.md.j2",
+        """---
+title: About
+slug: about
+summary: About this site.
+---
+
+About.
+""",
+    )
+    monkeypatch.setattr(content_loader, "CONTENT_ROOT", tmp_path)
+
+    page = content_loader.load_site_page("about")
+
+    assert page.slug == "about"
+
+
+def test_site_page_rejects_an_invalid_analytics_slug(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    write_page(
+        tmp_path,
+        "site",
+        "about.md.j2",
+        """---
+title: About
+slug: About Page
+summary: About this site.
+---
+
+About.
+""",
+    )
+    monkeypatch.setattr(content_loader, "CONTENT_ROOT", tmp_path)
+
+    with pytest.raises(ContentError, match="lowercase kebab-case"):
+        content_loader.load_site_page("about")
+
+
+def test_site_page_rejects_a_slug_that_does_not_match_its_filename(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    write_page(
+        tmp_path,
+        "site",
+        "about.md.j2",
+        """---
+title: Contact
+slug: contact
+summary: Contact this site.
+---
+
+Contact.
+""",
+    )
+    monkeypatch.setattr(content_loader, "CONTENT_ROOT", tmp_path)
+
+    with pytest.raises(ContentError, match="slug must match its filename"):
+        content_loader.load_site_page("about")
 
 
 def test_loader_sorts_content_by_section_then_order(tmp_path: Path) -> None:
