@@ -39,12 +39,23 @@ export function HomePage() {
   const [content, setContent] = useState<HomepageContent | null>(null);
   const [contentError, setContentError] = useState(false);
   const engagedTopics = useRef(new Set<string>());
+  const trackedPage = useRef<string | null>(null);
   const homepage = content?.homepage;
 
   useEffect(() => {
-    trackPageView();
     void getHomepageContent()
-      .then(setContent)
+      .then((nextContent) => {
+        setContent(nextContent);
+        const pageKey = `home:${nextContent.homepage.title}`;
+        if (trackedPage.current !== pageKey) {
+          trackedPage.current = pageKey;
+          trackPageView({
+            pageType: "home",
+            pageSlug: "home",
+            pageTitle: nextContent.homepage.title,
+          });
+        }
+      })
       .catch(() => setContentError(true));
   }, []);
 

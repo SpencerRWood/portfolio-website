@@ -14,6 +14,16 @@ export const analyticsEvent = {
 
 type EventProperties = Record<string, string>;
 
+export type PageType =
+  "home" | "section_index" | "blog_article" | "topic" | "project" | "static_page";
+
+export interface PageViewProperties {
+  pageType: PageType;
+  pageSlug: string;
+  pageTitle: string;
+  section?: "topics" | "blog" | "projects";
+}
+
 interface AnalyticsClient {
   load(writeKey: string, dataPlaneUrl: string): void;
   page(category: string, name: string, properties: EventProperties): void;
@@ -33,8 +43,18 @@ function track(name: string, properties: EventProperties): void {
   client?.track(name, properties);
 }
 
-export function trackPageView(): void {
-  client?.page("site", "home", { page_name: "home" });
+export function trackPageView({
+  pageType,
+  pageSlug,
+  pageTitle,
+  section,
+}: PageViewProperties): void {
+  client?.page("site", pageType, {
+    page_type: pageType,
+    page_slug: pageSlug,
+    page_title: pageTitle,
+    ...(section ? { section } : {}),
+  });
 }
 
 export function trackNavigation(destination: string): void {
