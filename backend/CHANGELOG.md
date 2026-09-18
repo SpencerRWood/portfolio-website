@@ -2,6 +2,17 @@
 
 <!-- version list -->
 
+## v0.5.1 (2026-09-18)
+
+### Bug Fixes
+
+- Harden content driven page analytics
+  ([`850a315`](https://github.com/SpencerRWood/portfolio-website/commit/850a315c43bbc64923cce9fa148c73e2e7bd2b67))
+
+- Make page analytics content driven
+  ([`8604e69`](https://github.com/SpencerRWood/portfolio-website/commit/8604e695246379adef360aa55fa2cd45d415f0ad))
+
+
 ## v0.5.0 (2026-09-18)
 
 ### Bug Fixes
