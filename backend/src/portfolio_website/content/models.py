@@ -16,11 +16,11 @@ class ContentPage:
     section: ContentSection
     summary: str
     body_html: str
-    # ``order`` is explicit ordering for topics and projects, never blog chronology.
+    # ``order`` orders topics/projects and breaks same-date blog publication ties.
     order: int = 0
     topics: tuple[str, ...] = ()
     nav: bool = False
-    # ``featured`` is editorial promotion; ``published`` determines blog chronology.
+    # ``featured`` is editorial promotion; ``published`` is primary blog chronology.
     featured: bool = False
     published: date | None = None
     repository: str | None = None

@@ -14,10 +14,10 @@ export function SiteLayout({
   children: ReactNode;
 }) {
   return (
-    <main className="mx-auto max-w-7xl px-5 pb-16 sm:px-8 lg:px-12">
+    <>
       <SiteHeader navigation={navigation} />
-      {children}
+      <main className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-12">{children}</main>
       <SiteFooter topics={topics} />
-    </main>
+    </>
   );
 }

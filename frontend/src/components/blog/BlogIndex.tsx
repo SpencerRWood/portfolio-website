@@ -1,6 +1,6 @@
 import type { ContentPage, SitePage } from "../../api/client";
 
-import { formatPublishedDate, selectFeaturedPost } from "./blogMetadata";
+import { formatPublishedDate, selectFeaturedPost, topicName } from "./blogMetadata";
 import { TopicLinks } from "./TopicLinks";
 
 interface BlogIndexProps {
@@ -17,8 +17,14 @@ function PostDate({ value }: { value: string | null }) {
   );
 }
 
-function FeaturedVisual({ post }: { post: ContentPage }) {
-  const primaryTopic = post.topics[0]?.replaceAll("-", " ") ?? "Writing";
+function FeaturedVisual({
+  post,
+  topics,
+}: {
+  post: ContentPage;
+  topics: ContentPage[];
+}) {
+  const primaryTopic = post.topics[0] ? topicName(post.topics[0], topics) : "Writing";
 
   return (
     <div className="flex min-h-64 flex-col justify-between border border-black/20 bg-black/[0.025] p-6 md:min-h-full md:p-8">
@@ -118,7 +124,7 @@ export function BlogIndex({ page, posts, topics }: BlogIndexProps) {
                 </span>
               </a>
             </div>
-            <FeaturedVisual post={featured} />
+            <FeaturedVisual post={featured} topics={topics} />
           </article>
         </section>
       ) : null}

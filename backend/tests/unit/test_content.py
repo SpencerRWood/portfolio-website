@@ -130,6 +130,36 @@ Newer.
     ]
 
 
+def test_blog_order_breaks_same_date_ties_before_title(tmp_path: Path) -> None:
+    for filename, slug, title, order in [
+        ("second.md.j2", "second", "A title", 20),
+        ("first.md.j2", "first", "Z title", 10),
+        ("third.md.j2", "third", "B title", 20),
+    ]:
+        write_page(
+            tmp_path,
+            "blog",
+            filename,
+            f"""---
+title: {title}
+slug: {slug}
+section: blog
+order: {order}
+published: 2026-09-18
+summary: A post.
+---
+
+Post.
+""",
+        )
+
+    assert [page.slug for page in ContentLoader(tmp_path).discover()] == [
+        "first",
+        "second",
+        "third",
+    ]
+
+
 def test_navigation_is_derived_from_nav_metadata(tmp_path: Path) -> None:
     partials = tmp_path / "_partials"
     partials.mkdir()
