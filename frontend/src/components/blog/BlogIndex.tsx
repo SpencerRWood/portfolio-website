@@ -1,6 +1,7 @@
 import type { ContentPage, SitePage } from "../../api/client";
 
 import { formatPublishedDate, selectFeaturedPost, topicName } from "./blogMetadata";
+import { trackClick } from "../../analytics/events";
 import { TopicLinks } from "./TopicLinks";
 
 interface BlogIndexProps {
@@ -79,6 +80,7 @@ export function BlogIndex({ page, posts, topics }: BlogIndexProps) {
             <TopicLinks
               topics={topics}
               slugs={representedTopics.map((topic) => topic.slug)}
+              source={{ sourcePageType: "section_index", sourcePageSlug: page.slug }}
             />
           </div>
         </nav>
@@ -92,7 +94,14 @@ export function BlogIndex({ page, posts, topics }: BlogIndexProps) {
           <article className="mt-5 grid border-y border-black/20 py-6 md:grid-cols-[minmax(0,1.2fr)_minmax(15rem,0.8fr)] md:gap-12 md:py-8">
             <div className="py-2">
               <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-                <TopicLinks topics={topics} slugs={featured.topics} />
+                <TopicLinks
+                  topics={topics}
+                  slugs={featured.topics}
+                  source={{
+                    sourcePageType: "section_index",
+                    sourcePageSlug: page.slug,
+                  }}
+                />
                 <span className="text-black/30" aria-hidden="true">
                   ·
                 </span>
@@ -107,6 +116,16 @@ export function BlogIndex({ page, posts, topics }: BlogIndexProps) {
                 <a
                   className="transition-colors hover:text-black/55 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-black"
                   href={`/blog/${featured.slug}`}
+                  onClick={() =>
+                    trackClick({
+                      sourcePageType: "section_index",
+                      sourcePageSlug: page.slug,
+                      targetType: "internal_page",
+                      targetPageType: "blog_article",
+                      targetSlug: featured.slug,
+                      destination: `/blog/${featured.slug}`,
+                    })
+                  }
                 >
                   {featured.title}
                 </a>
@@ -117,6 +136,16 @@ export function BlogIndex({ page, posts, topics }: BlogIndexProps) {
               <a
                 className="mt-8 inline-flex font-mono text-xs tracking-[0.1em] underline decoration-black/35 underline-offset-4 uppercase transition-colors hover:text-black/55 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-black"
                 href={`/blog/${featured.slug}`}
+                onClick={() =>
+                  trackClick({
+                    sourcePageType: "section_index",
+                    sourcePageSlug: page.slug,
+                    targetType: "internal_page",
+                    targetPageType: "blog_article",
+                    targetSlug: featured.slug,
+                    destination: `/blog/${featured.slug}`,
+                  })
+                }
               >
                 Read article{" "}
                 <span className="ml-2" aria-hidden="true">
@@ -152,7 +181,14 @@ export function BlogIndex({ page, posts, topics }: BlogIndexProps) {
                   <PostDate value={post.published} />
                 </p>
                 <div className="mt-3">
-                  <TopicLinks topics={topics} slugs={post.topics} />
+                  <TopicLinks
+                    topics={topics}
+                    slugs={post.topics}
+                    source={{
+                      sourcePageType: "section_index",
+                      sourcePageSlug: page.slug,
+                    }}
+                  />
                 </div>
               </div>
               <div>
@@ -160,6 +196,16 @@ export function BlogIndex({ page, posts, topics }: BlogIndexProps) {
                   <a
                     className="transition-colors group-hover:text-black/55 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-black"
                     href={`/blog/${post.slug}`}
+                    onClick={() =>
+                      trackClick({
+                        sourcePageType: "section_index",
+                        sourcePageSlug: page.slug,
+                        targetType: "internal_page",
+                        targetPageType: "blog_article",
+                        targetSlug: post.slug,
+                        destination: `/blog/${post.slug}`,
+                      })
+                    }
                   >
                     {post.title}
                   </a>
@@ -168,6 +214,16 @@ export function BlogIndex({ page, posts, topics }: BlogIndexProps) {
                 <a
                   className="mt-5 inline-flex font-mono text-xs tracking-[0.1em] text-black/60 uppercase transition-colors hover:text-black focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-black"
                   href={`/blog/${post.slug}`}
+                  onClick={() =>
+                    trackClick({
+                      sourcePageType: "section_index",
+                      sourcePageSlug: page.slug,
+                      targetType: "internal_page",
+                      targetPageType: "blog_article",
+                      targetSlug: post.slug,
+                      destination: `/blog/${post.slug}`,
+                    })
+                  }
                 >
                   Read note{" "}
                   <span className="ml-2" aria-hidden="true">

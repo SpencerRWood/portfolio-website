@@ -1,15 +1,16 @@
 import { useState } from "react";
 
-import { trackContactConversion } from "../analytics/events";
+import { trackConversion, trackFormSubmit, type PageSource } from "../analytics/events";
 import { submitContact } from "../api/client";
 
-export function ContactForm() {
+export function ContactForm({ source }: { source: PageSource }) {
   const [status, setStatus] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const form = new FormData(event.currentTarget);
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
     setIsSubmitting(true);
     setStatus(null);
     try {
@@ -18,9 +19,10 @@ export function ContactForm() {
         email: String(form.get("email") ?? ""),
         message: String(form.get("message") ?? ""),
       });
-      event.currentTarget.reset();
+      formElement.reset();
       setStatus("Thanks — your message has been sent.");
-      trackContactConversion();
+      trackFormSubmit({ ...source, formType: "contact", status: "success" });
+      trackConversion({ ...source, conversionType: "contact_lead" });
     } catch {
       setStatus("Your message could not be sent. Please try again later.");
     } finally {

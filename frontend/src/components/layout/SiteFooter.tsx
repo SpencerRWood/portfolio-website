@@ -1,13 +1,19 @@
 import { useEffect, useState } from "react";
 
-import { trackNavigation } from "../../analytics/events";
+import { trackClick, type PageSource } from "../../analytics/events";
 import {
   getFooterNavigation,
   type ContentPage,
   type FooterNavigation,
 } from "../../api/client";
 
-export function SiteFooter({ topics }: { topics: ContentPage[] }) {
+export function SiteFooter({
+  topics,
+  source,
+}: {
+  topics: ContentPage[];
+  source?: PageSource;
+}) {
   const [navigation, setNavigation] = useState<FooterNavigation | null>(null);
 
   useEffect(() => {
@@ -26,7 +32,16 @@ export function SiteFooter({ topics }: { topics: ContentPage[] }) {
               <a
                 className="font-mono text-xs tracking-[0.12em] uppercase transition-colors hover:text-black/55"
                 href="/topics"
-                onClick={() => trackNavigation("/topics")}
+                onClick={() =>
+                  source &&
+                  trackClick({
+                    ...source,
+                    targetType: "internal_page",
+                    targetPageType: "section_index",
+                    targetSlug: "topics",
+                    destination: "/topics",
+                  })
+                }
               >
                 {navigation?.topics_title ?? "Topics"}
               </a>
@@ -36,7 +51,16 @@ export function SiteFooter({ topics }: { topics: ContentPage[] }) {
                     <a
                       className="text-sm leading-5 text-black/45 transition-colors hover:text-black focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-black"
                       href={`/topics/${topic.slug}`}
-                      onClick={() => trackNavigation(`/topics/${topic.slug}`)}
+                      onClick={() =>
+                        source &&
+                        trackClick({
+                          ...source,
+                          targetType: "internal_page",
+                          targetPageType: "topic",
+                          targetSlug: topic.slug,
+                          destination: `/topics/${topic.slug}`,
+                        })
+                      }
                     >
                       {topic.title}
                     </a>
@@ -45,7 +69,12 @@ export function SiteFooter({ topics }: { topics: ContentPage[] }) {
               </ul>
             </div>
             {(navigation?.items ?? []).map(({ title, destination }) => (
-              <FooterLink key={destination} label={title} destination={destination} />
+              <FooterLink
+                key={destination}
+                label={title}
+                destination={destination}
+                source={source}
+              />
             ))}
           </div>
         </nav>
@@ -54,12 +83,22 @@ export function SiteFooter({ topics }: { topics: ContentPage[] }) {
   );
 }
 
-function FooterLink({ label, destination }: { label: string; destination: string }) {
+function FooterLink({
+  label,
+  destination,
+  source,
+}: {
+  label: string;
+  destination: string;
+  source?: PageSource;
+}) {
   return (
     <a
       className="font-mono text-xs tracking-[0.12em] uppercase transition-colors hover:text-black/55"
       href={destination}
-      onClick={() => trackNavigation(destination)}
+      onClick={() =>
+        source && trackClick({ ...source, targetType: "internal_page", destination })
+      }
     >
       {label}
     </a>

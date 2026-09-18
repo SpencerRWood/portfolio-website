@@ -6,10 +6,10 @@ import { RudderAnalytics } from "@rudderstack/analytics-js";
  * Contact names, emails, and messages are intentionally never sent here.
  */
 export const analyticsEvent = {
-  navigationSelected: "site_navigation_selected",
-  topicEngaged: "topic_engaged",
-  outboundReferenceSelected: "site_outbound_reference_selected",
-  contactSubmitted: "site_contact_submitted",
+  pageView: "page_view",
+  click: "click",
+  formSubmit: "form_submit",
+  conversion: "conversion",
 } as const;
 
 type EventProperties = Record<string, string>;
@@ -22,6 +22,30 @@ export interface PageViewProperties {
   pageSlug: string;
   pageTitle: string;
   section?: "topics" | "blog" | "projects";
+}
+
+export interface PageSource {
+  sourcePageType: PageType;
+  sourcePageSlug: string;
+}
+
+export type ClickTargetType = "internal_page" | "external_reference" | "action";
+
+export interface ClickProperties extends PageSource {
+  targetType: ClickTargetType;
+  destination?: string;
+  targetPageType?: PageType;
+  targetSlug?: string;
+  referenceType?: string;
+}
+
+export interface FormSubmitProperties extends PageSource {
+  formType: "contact";
+  status: "success";
+}
+
+export interface ConversionProperties extends PageSource {
+  conversionType: "contact_lead";
 }
 
 interface AnalyticsClient {
@@ -49,7 +73,7 @@ export function trackPageView({
   pageTitle,
   section,
 }: PageViewProperties): void {
-  client?.page("site", pageType, {
+  client?.page("site", analyticsEvent.pageView, {
     page_type: pageType,
     page_slug: pageSlug,
     page_title: pageTitle,
@@ -57,24 +81,48 @@ export function trackPageView({
   });
 }
 
-export function trackNavigation(destination: string): void {
-  track(analyticsEvent.navigationSelected, { destination });
-}
-
-export function trackTopicEngagement(topicSlug: string): void {
-  track(analyticsEvent.topicEngaged, { topic_slug: topicSlug });
-}
-
-export function trackOutboundReference(
-  sectionSlug: string,
-  referenceLabel: string,
-): void {
-  track(analyticsEvent.outboundReferenceSelected, {
-    reference_label: referenceLabel,
-    section_slug: sectionSlug,
+export function trackClick({
+  sourcePageType,
+  sourcePageSlug,
+  targetType,
+  destination,
+  targetPageType,
+  targetSlug,
+  referenceType,
+}: ClickProperties): void {
+  track(analyticsEvent.click, {
+    source_page_type: sourcePageType,
+    source_page_slug: sourcePageSlug,
+    target_type: targetType,
+    ...(destination ? { destination } : {}),
+    ...(targetPageType ? { target_page_type: targetPageType } : {}),
+    ...(targetSlug ? { target_slug: targetSlug } : {}),
+    ...(referenceType ? { reference_type: referenceType } : {}),
   });
 }
 
-export function trackContactConversion(): void {
-  track(analyticsEvent.contactSubmitted, { conversion_type: "contact_form" });
+export function trackFormSubmit({
+  formType,
+  status,
+  sourcePageType,
+  sourcePageSlug,
+}: FormSubmitProperties): void {
+  track(analyticsEvent.formSubmit, {
+    form_type: formType,
+    status,
+    source_page_type: sourcePageType,
+    source_page_slug: sourcePageSlug,
+  });
+}
+
+export function trackConversion({
+  conversionType,
+  sourcePageType,
+  sourcePageSlug,
+}: ConversionProperties): void {
+  track(analyticsEvent.conversion, {
+    conversion_type: conversionType,
+    source_page_type: sourcePageType,
+    source_page_slug: sourcePageSlug,
+  });
 }
