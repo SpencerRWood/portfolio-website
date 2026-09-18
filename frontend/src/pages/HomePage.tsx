@@ -5,36 +5,76 @@ import {
   trackNavigation,
   trackOutboundReference,
   trackPageView,
-  trackSectionEngagement,
+  trackTopicEngagement,
 } from "../analytics/events";
-import { requestBackend, submitContact } from "../api/client";
-import { PortfolioSection } from "../components/PortfolioSection";
-import { portfolioSections } from "../content/sections";
+import { submitContact } from "../api/client";
+import { TopicList } from "../components/TopicList";
+import { topics } from "../content/topics";
+
+const writing = [
+  "Designing events as data contracts",
+  "Simulating realistic website traffic",
+  "Structuring a dbt project",
+  "Building reusable analytical reporting",
+];
+
+const projects = [
+  {
+    title: "Synthetic Website Analytics Platform",
+    summary:
+      "A simulated website analytics system covering event generation, dbt modeling, analysis, and reporting.",
+    href: "https://github.com/SpencerRWood/synthetic-website-analytics-platform",
+  },
+  {
+    title: "wood-charts",
+    summary: "A small charting library for consistent analytical graphics.",
+    href: "https://github.com/SpencerRWood/wood-charts",
+  },
+  {
+    title: "wood-reports",
+    summary:
+      "A reporting system for turning analysis into reusable presentation and document outputs.",
+    href: "https://github.com/SpencerRWood/wood-reports",
+  },
+];
+
+function SectionHeading({
+  eyebrow,
+  title,
+  copy,
+}: {
+  eyebrow: string;
+  title: string;
+  copy: string;
+}) {
+  return (
+    <div className="mb-9 md:grid md:grid-cols-[10rem_minmax(0,1fr)] md:gap-8">
+      <p className="font-mono text-xs tracking-[0.16em] text-black/55 uppercase">
+        {eyebrow}
+      </p>
+      <div className="mt-4 max-w-2xl md:mt-0">
+        <h2 className="font-display text-3xl font-semibold tracking-[-0.045em] md:text-5xl">
+          {title}
+        </h2>
+        <p className="mt-4 text-lg leading-8 text-black/75">{copy}</p>
+      </div>
+    </div>
+  );
+}
 
 export function HomePage() {
-  const [healthStatus, setHealthStatus] = useState<string | null>(null);
   const [contactStatus, setContactStatus] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const engagedSections = useRef(new Set<string>());
+  const engagedTopics = useRef(new Set<string>());
 
   useEffect(() => {
     trackPageView();
   }, []);
 
-  function trackFirstSectionEngagement(sectionSlug: string) {
-    if (!engagedSections.current.has(sectionSlug)) {
-      engagedSections.current.add(sectionSlug);
-      trackSectionEngagement(sectionSlug);
-    }
-  }
-
-  async function checkBackendHealth() {
-    setHealthStatus("Checking backend health…");
-    try {
-      const response = await requestBackend();
-      setHealthStatus(`Backend status: ${response.status}`);
-    } catch {
-      setHealthStatus("Backend health check failed.");
+  function trackFirstTopicEngagement(topicSlug: string) {
+    if (!engagedTopics.current.has(topicSlug)) {
+      engagedTopics.current.add(topicSlug);
+      trackTopicEngagement(topicSlug);
     }
   }
 
@@ -67,123 +107,204 @@ export function HomePage() {
             className="font-mono text-xs font-medium tracking-[0.14em] uppercase transition-opacity hover:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-black"
             href="#top"
           >
-            Spencer Wood / Portfolio
+            Spencer Wood
           </a>
-          <span className="font-mono text-[0.68rem] tracking-[0.12em] text-black/55 uppercase">
-            Analytics systems
-          </span>
+          <a
+            className="font-mono text-[0.68rem] tracking-[0.12em] text-black/55 uppercase transition-colors hover:text-black focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-black"
+            href="https://github.com/SpencerRWood"
+            onClick={() => trackOutboundReference("header", "GitHub")}
+          >
+            GitHub ↗
+          </a>
         </div>
         <nav className="mt-7 overflow-x-auto pb-1" aria-label="Primary navigation">
-          <ul className="flex w-max items-center gap-x-5 gap-y-2 font-mono text-xs tracking-[0.08em] uppercase md:gap-x-7">
-            {portfolioSections.map((section) => (
-              <li key={section.slug}>
+          <ul className="flex w-max items-center gap-x-6 font-mono text-xs tracking-[0.08em] uppercase md:gap-x-8">
+            {[
+              ["Topics", "topics"],
+              ["Writing", "writing"],
+              ["Projects", "projects"],
+              ["About", "about"],
+            ].map(([label, destination]) => (
+              <li key={destination}>
                 <a
                   className="whitespace-nowrap text-black/65 transition-colors hover:text-black focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-black"
-                  href={`#${section.slug}`}
-                  onClick={() => trackNavigation(section.slug)}
+                  href={`#${destination}`}
+                  onClick={() => trackNavigation(destination)}
                 >
-                  {section.title}
+                  {label}
                 </a>
               </li>
             ))}
-            <li>
-              <a
-                className="whitespace-nowrap text-black/65 transition-colors hover:text-black focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-black"
-                href="#about"
-                onClick={() => trackNavigation("about")}
-              >
-                About
-              </a>
-            </li>
-            <li>
-              <a
-                className="whitespace-nowrap text-black/65 transition-colors hover:text-black focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-black"
-                href="#contact"
-                onClick={() => trackNavigation("contact")}
-              >
-                Contact
-              </a>
-            </li>
           </ul>
         </nav>
       </header>
+
       <section
         id="top"
         className="grid gap-8 py-16 md:grid-cols-[minmax(0,1fr)_13rem] md:gap-16 md:py-24"
-        aria-labelledby="lifecycle-heading"
+        aria-labelledby="hero-heading"
       >
         <div>
           <p className="font-mono text-xs tracking-[0.16em] text-black/55 uppercase">
-            An analytical portfolio
+            Notes and working examples
           </p>
           <h1
-            id="lifecycle-heading"
+            id="hero-heading"
             className="font-display mt-5 max-w-4xl text-5xl leading-[0.94] font-semibold tracking-[-0.055em] md:text-7xl lg:text-8xl"
           >
-            Systems for turning data into better decisions.
+            How analytical systems are built
           </h1>
           <p className="mt-8 max-w-2xl text-lg leading-8 text-black/75 md:text-xl md:leading-9">
-            An end-to-end analytics lifecycle: from the events systems create to the
-            evidence people use to act.
+            Notes, examples, and working projects on how data moves from collection and
+            modeling through analysis, machine learning, and reporting.
           </p>
           <a
             className="mt-9 inline-flex items-center gap-3 bg-black px-5 py-3 font-mono text-xs tracking-[0.1em] text-white uppercase transition-colors hover:bg-black/75 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-black"
-            href="#data-generation"
-            onClick={() => trackNavigation("data-generation")}
+            href="#topics"
+            onClick={() => trackNavigation("topics")}
           >
-            Explore the lifecycle <span aria-hidden="true">↓</span>
+            Explore topics <span aria-hidden="true">→</span>
           </a>
         </div>
         <aside className="border-l border-black/20 pl-5 md:self-end">
           <p className="font-mono text-[0.68rem] tracking-[0.14em] text-black/55 uppercase">
-            Scope
+            Topics
           </p>
           <p className="mt-3 leading-7 text-black/75">
-            Product instrumentation, analytical data platforms, modeling, reporting, and
-            machine learning.
+            Data systems, modeling, analysis, machine learning, and communication.
           </p>
         </aside>
       </section>
-      {portfolioSections.map((section, index) => (
-        <PortfolioSection
-          key={section.slug}
-          index={index}
-          section={section}
-          onEngage={trackFirstSectionEngagement}
-          onOutboundReference={trackOutboundReference}
+
+      <section
+        id="topics"
+        className="border-t border-black/20 py-12 md:py-16"
+        aria-labelledby="topics-heading"
+      >
+        <SectionHeading
+          eyebrow="01 / Topics"
+          title="Topics"
+          copy="A few areas I keep coming back to."
         />
-      ))}
+        <TopicList topics={topics} onEngage={trackFirstTopicEngagement} />
+      </section>
+
+      <section
+        id="writing"
+        className="border-t border-black/20 py-12 md:py-16"
+        aria-labelledby="writing-heading"
+      >
+        <SectionHeading
+          eyebrow="02 / Writing"
+          title="Selected writing"
+          copy="A few deeper pieces on specific problems."
+        />
+        <div className="border-t border-black/20">
+          {writing.map((title) => (
+            <a
+              key={title}
+              className="flex items-center justify-between gap-6 border-b border-black/15 py-5 font-display text-xl font-medium tracking-[-0.025em] transition-colors hover:text-black/55 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-black md:text-2xl"
+              href="#writing"
+              onClick={() => trackNavigation("writing")}
+            >
+              {title}{" "}
+              <span className="font-mono text-sm text-black/45" aria-hidden="true">
+                →
+              </span>
+            </a>
+          ))}
+        </div>
+        <a
+          className="mt-7 inline-flex items-center gap-2 font-mono text-xs tracking-[0.1em] underline decoration-black/35 underline-offset-4 uppercase transition-colors hover:text-black/55 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-black"
+          href="#writing"
+          onClick={() => trackNavigation("writing")}
+        >
+          View all writing <span aria-hidden="true">→</span>
+        </a>
+      </section>
+
+      <section
+        id="projects"
+        className="border-t border-black/20 py-12 md:py-16"
+        aria-labelledby="projects-heading"
+      >
+        <SectionHeading
+          eyebrow="03 / Projects"
+          title="Projects"
+          copy="Working examples tied to the topics above."
+        />
+        <div className="border-t border-black/20">
+          {projects.map((project) => (
+            <article
+              key={project.title}
+              className="grid gap-4 border-b border-black/15 py-7 md:grid-cols-[minmax(0,1fr)_minmax(16rem,0.8fr)] md:gap-8"
+            >
+              <h3 className="font-display text-2xl font-semibold tracking-[-0.035em] md:text-3xl">
+                <a
+                  className="transition-colors hover:text-black/55 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-black"
+                  href={project.href}
+                  onClick={() => trackOutboundReference("projects", project.title)}
+                >
+                  {project.title}{" "}
+                  <span className="font-mono text-sm" aria-hidden="true">
+                    ↗
+                  </span>
+                </a>
+              </h3>
+              <p className="max-w-xl leading-7 text-black/70">{project.summary}</p>
+            </article>
+          ))}
+        </div>
+        <a
+          className="mt-7 inline-flex items-center gap-2 font-mono text-xs tracking-[0.1em] underline decoration-black/35 underline-offset-4 uppercase transition-colors hover:text-black/55 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-black"
+          href="https://github.com/SpencerRWood"
+          onClick={() => trackOutboundReference("projects", "View all projects")}
+        >
+          View all projects <span aria-hidden="true">→</span>
+        </a>
+      </section>
+
       <section
         id="about"
         className="border-t border-black/20 py-12 md:grid md:grid-cols-[10rem_minmax(0,1fr)] md:gap-8 md:py-16"
       >
         <p className="font-mono text-xs tracking-[0.16em] text-black/55 uppercase">
-          About
+          04 / About
         </p>
         <div className="mt-5 max-w-2xl md:mt-0">
           <h2 className="font-display text-3xl font-semibold tracking-[-0.045em] md:text-5xl">
-            Clear systems make better work possible.
+            About
           </h2>
           <p className="mt-5 text-lg leading-8 text-black/75">
-            Portfolio work focused on clear, durable analytical systems: useful data
-            contracts, trustworthy models, and communication people can act on.
+            I’m Spencer Wood. I work on analytics, data systems, and applied machine
+            learning. This site is where I write down the parts I think are useful and
+            keep working examples alongside them.
           </p>
+          <a
+            className="mt-6 inline-flex items-center gap-2 font-mono text-xs tracking-[0.1em] underline decoration-black/35 underline-offset-4 uppercase transition-colors hover:text-black/55 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-black"
+            href="#contact"
+            onClick={() => trackNavigation("contact")}
+          >
+            Get in touch <span aria-hidden="true">→</span>
+          </a>
         </div>
       </section>
+
       <section
         id="contact"
         className="border-t border-black/20 py-12 md:grid md:grid-cols-[10rem_minmax(0,1fr)] md:gap-8 md:py-16"
+        aria-labelledby="contact-heading"
       >
         <p className="font-mono text-xs tracking-[0.16em] text-black/55 uppercase">
           Contact
         </p>
         <div className="mt-5 max-w-xl md:mt-0">
-          <h2 className="font-display text-3xl font-semibold tracking-[-0.045em] md:text-5xl">
+          <h2
+            id="contact-heading"
+            className="font-display text-3xl font-semibold tracking-[-0.045em] md:text-5xl"
+          >
             Start a conversation.
           </h2>
-          <p className="mt-4 leading-7 text-black/75">
-            For a project, an analytical problem, or a useful exchange of ideas.
-          </p>
           <form className="mt-8 space-y-5" onSubmit={submitContactForm}>
             <p>
               <label
@@ -246,25 +367,6 @@ export function HomePage() {
             </p>
           ) : null}
         </div>
-      </section>
-      <section className="border-t border-black/20 py-8">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <p className="font-mono text-[0.68rem] tracking-[0.12em] text-black/55 uppercase">
-            Application status
-          </p>
-          <button
-            className="border border-black/25 px-3 py-2 font-mono text-xs tracking-[0.08em] uppercase transition-colors hover:bg-black hover:text-white focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-black"
-            type="button"
-            onClick={checkBackendHealth}
-          >
-            Check backend health
-          </button>
-        </div>
-        {healthStatus ? (
-          <p className="mt-4 text-sm text-black/70" role="status">
-            {healthStatus}
-          </p>
-        ) : null}
       </section>
     </main>
   );
