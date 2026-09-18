@@ -6,10 +6,10 @@ import { RudderAnalytics } from "@rudderstack/analytics-js";
  * Contact names, emails, and messages are intentionally never sent here.
  */
 export const analyticsEvent = {
-  navigationSelected: "portfolio_navigation_selected",
-  sectionEngaged: "portfolio_section_engaged",
-  outboundReferenceSelected: "portfolio_outbound_reference_selected",
-  contactSubmitted: "portfolio_contact_submitted",
+  navigationSelected: "site_navigation_selected",
+  topicEngaged: "topic_engaged",
+  outboundReferenceSelected: "site_outbound_reference_selected",
+  contactSubmitted: "site_contact_submitted",
 } as const;
 
 type EventProperties = Record<string, string>;
@@ -34,15 +34,15 @@ function track(name: string, properties: EventProperties): void {
 }
 
 export function trackPageView(): void {
-  client?.page("portfolio", "home", { page_name: "home" });
+  client?.page("site", "home", { page_name: "home" });
 }
 
 export function trackNavigation(destination: string): void {
   track(analyticsEvent.navigationSelected, { destination });
 }
 
-export function trackSectionEngagement(sectionSlug: string): void {
-  track(analyticsEvent.sectionEngaged, { section_slug: sectionSlug });
+export function trackTopicEngagement(topicSlug: string): void {
+  track(analyticsEvent.topicEngaged, { topic_slug: topicSlug });
 }
 
 export function trackOutboundReference(
