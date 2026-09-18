@@ -1,7 +1,7 @@
-import type { Topic } from "../content/topics";
+import type { ContentPage } from "../api/client";
 
 interface TopicListProps {
-  topics: Topic[];
+  topics: ContentPage[];
   onEngage: (topicSlug: string) => void;
 }
 

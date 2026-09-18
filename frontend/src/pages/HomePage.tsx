@@ -7,11 +7,8 @@ import {
   trackPageView,
   trackTopicEngagement,
 } from "../analytics/events";
-import { submitContact } from "../api/client";
+import { getHomepageContent, submitContact, type HomepageContent } from "../api/client";
 import { TopicList } from "../components/TopicList";
-import { projects } from "../content/projects";
-import { topics } from "../content/topics";
-import { writing } from "../content/writing";
 
 function SectionHeading({
   eyebrow,
@@ -39,11 +36,16 @@ function SectionHeading({
 
 export function HomePage() {
   const [contactStatus, setContactStatus] = useState<string | null>(null);
+  const [content, setContent] = useState<HomepageContent | null>(null);
+  const [contentError, setContentError] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const engagedTopics = useRef(new Set<string>());
 
   useEffect(() => {
     trackPageView();
+    void getHomepageContent()
+      .then(setContent)
+      .catch(() => setContentError(true));
   }, []);
 
   function trackFirstTopicEngagement(topicSlug: string) {
@@ -161,7 +163,10 @@ export function HomePage() {
           title="Topics"
           copy="A few areas I keep coming back to."
         />
-        <TopicList topics={topics} onEngage={trackFirstTopicEngagement} />
+        <TopicList
+          topics={content?.topics ?? []}
+          onEngage={trackFirstTopicEngagement}
+        />
       </section>
 
       <section
@@ -175,11 +180,11 @@ export function HomePage() {
           copy="A few deeper pieces on specific problems."
         />
         <div className="border-t border-black/20">
-          {writing.map((entry) => (
+          {(content?.writing.filter((entry) => entry.featured) ?? []).map((entry) => (
             <a
               key={entry.slug}
               className="flex items-center justify-between gap-6 border-b border-black/15 py-5 font-display text-xl font-medium tracking-[-0.025em] transition-colors hover:text-black/55 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-black md:text-2xl"
-              href={entry.href ?? "#writing"}
+              href="#writing"
               onClick={() => trackNavigation("writing")}
             >
               {entry.title}{" "}
@@ -209,26 +214,28 @@ export function HomePage() {
           copy="Working examples tied to the topics above."
         />
         <div className="border-t border-black/20">
-          {projects.map((project) => (
-            <article
-              key={project.slug}
-              className="grid gap-4 border-b border-black/15 py-7 md:grid-cols-[minmax(0,1fr)_minmax(16rem,0.8fr)] md:gap-8"
-            >
-              <h3 className="font-display text-2xl font-semibold tracking-[-0.035em] md:text-3xl">
-                <a
-                  className="transition-colors hover:text-black/55 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-black"
-                  href={project.href}
-                  onClick={() => trackOutboundReference("projects", project.title)}
-                >
-                  {project.title}{" "}
-                  <span className="font-mono text-sm" aria-hidden="true">
-                    ↗
-                  </span>
-                </a>
-              </h3>
-              <p className="max-w-xl leading-7 text-black/70">{project.summary}</p>
-            </article>
-          ))}
+          {(content?.projects.filter((project) => project.featured) ?? []).map(
+            (project) => (
+              <article
+                key={project.slug}
+                className="grid gap-4 border-b border-black/15 py-7 md:grid-cols-[minmax(0,1fr)_minmax(16rem,0.8fr)] md:gap-8"
+              >
+                <h3 className="font-display text-2xl font-semibold tracking-[-0.035em] md:text-3xl">
+                  <a
+                    className="transition-colors hover:text-black/55 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-black"
+                    href={project.repository ?? "#projects"}
+                    onClick={() => trackOutboundReference("projects", project.title)}
+                  >
+                    {project.title}{" "}
+                    <span className="font-mono text-sm" aria-hidden="true">
+                      ↗
+                    </span>
+                  </a>
+                </h3>
+                <p className="max-w-xl leading-7 text-black/70">{project.summary}</p>
+              </article>
+            ),
+          )}
         </div>
         <a
           className="mt-7 inline-flex items-center gap-2 font-mono text-xs tracking-[0.1em] underline decoration-black/35 underline-offset-4 uppercase transition-colors hover:text-black/55 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-black"
@@ -237,6 +244,11 @@ export function HomePage() {
         >
           View all projects <span aria-hidden="true">→</span>
         </a>
+        {contentError ? (
+          <p className="mt-6 text-sm text-black/65" role="status">
+            Content could not be loaded. Please try again later.
+          </p>
+        ) : null}
       </section>
 
       <section

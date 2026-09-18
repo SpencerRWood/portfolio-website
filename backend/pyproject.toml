@@ -22,6 +22,8 @@ classifiers = [
 dependencies = [
   "alembic",
   "fastapi",
+  "jinja2",
+  "markdown",
   "psycopg[binary]",
   "sqlalchemy",
   "uvicorn[standard]",
@@ -38,10 +40,12 @@ dev = [
   "python-semantic-release",
   "ruff",
   "httpx2>=2.13.0",
+  "types-markdown>=3.10.2.20260712",
 ]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/portfolio_website"]
+include = ["src/portfolio_website/content/**/*.md.j2"]
 
 [tool.hatch.build.targets.sdist]
 exclude = [

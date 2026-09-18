@@ -1,5 +1,38 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+vi.mock("../src/api/client", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../src/api/client")>();
+  return {
+    ...actual,
+    getHomepageContent: vi.fn().mockResolvedValue({
+      topics: [
+        {
+          title: "Data Generation",
+          slug: "data-generation",
+          summary: "How applications create analytical data.",
+        },
+      ],
+      writing: [
+        {
+          title: "Designing events as data contracts",
+          slug: "designing-events-as-data-contracts",
+          featured: true,
+        },
+      ],
+      projects: [
+        {
+          title: "Synthetic Website Analytics Platform",
+          slug: "synthetic-website-analytics",
+          summary: "A simulated website analytics system.",
+          repository:
+            "https://github.com/SpencerRWood/synthetic-website-analytics-platform",
+          featured: true,
+        },
+      ],
+    }),
+  };
+});
 
 import { App } from "../src/App";
 
@@ -27,13 +60,15 @@ describe("App", () => {
     expect(document.body).not.toHaveTextContent(/portfolio/i);
   });
 
-  it("renders topic, selected writing, and project content", () => {
+  it("renders content supplied by the backend", async () => {
     render(<App />);
 
-    expect(screen.getByText("Data Generation")).toBeInTheDocument();
-    expect(screen.getByText("Designing events as data contracts")).toBeInTheDocument();
+    expect(await screen.findByText("Data Generation")).toBeInTheDocument();
     expect(
-      screen.getByText("Synthetic Website Analytics Platform"),
+      await screen.findByText("Designing events as data contracts"),
+    ).toBeInTheDocument();
+    expect(
+      await screen.findByText("Synthetic Website Analytics Platform"),
     ).toBeInTheDocument();
   });
 });

@@ -29,6 +29,8 @@ def test_project_metadata_describes_contact_lead_capture_runtime() -> None:
     assert project["dependencies"] == [
         "alembic",
         "fastapi",
+        "jinja2",
+        "markdown",
         "psycopg[binary]",
         "sqlalchemy",
         "uvicorn[standard]",
