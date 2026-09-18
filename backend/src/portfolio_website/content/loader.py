@@ -125,7 +125,7 @@ class ContentLoader:
             )
             for page, (_, _, _, markdown_source) in zip(pages, documents, strict=True)
         ]
-        return sorted(rendered, key=lambda page: (page.section, page.order, page.title))
+        return sorted(rendered, key=self._sort_key)
 
     def navigation(self) -> list[NavigationItem]:
         """Return topic navigation derived from pages that opt into it."""
@@ -193,6 +193,14 @@ class ContentLoader:
                 if item.section == "projects" and page.slug in item.topics
             ],
         }
+
+    @staticmethod
+    def _sort_key(page: ContentPage) -> tuple[str, int, int, int, str]:
+        """Keep authored order except for blog indexes, which are chronological."""
+        if page.section == "blog":
+            published_rank = page.published.toordinal() if page.published else -1
+            return (page.section, 0, -published_rank, page.order, page.title)
+        return (page.section, 1, 0, page.order, page.title)
 
     @staticmethod
     def _validate_unique_slugs(pages: Iterable[ContentPage]) -> None:

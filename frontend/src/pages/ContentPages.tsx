@@ -10,8 +10,10 @@ import {
   type SitePage,
 } from "../api/client";
 import { trackNavigation, trackPageView } from "../analytics/events";
-import { SiteFooter } from "../components/SiteFooter";
 import { ContactForm } from "../components/ContactForm";
+import { BlogArticle } from "../components/blog/BlogArticle";
+import { BlogIndex } from "../components/blog/BlogIndex";
+import { SiteFooter } from "../components/SiteFooter";
 
 type Section = ContentPage["section"];
 type SiteSlug = "topics" | "blog" | "projects" | "contact" | "about";
@@ -98,65 +100,6 @@ function Intro({ page }: { page: SitePage }) {
   );
 }
 
-function formatPublishedDate(value: string | null | undefined): string {
-  if (!value) return "Recent post";
-  return new Intl.DateTimeFormat("en", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  }).format(new Date(`${value}T00:00:00`));
-}
-
-function BlogPostList({ pages }: { pages: ContentPage[] }) {
-  const [featured, ...posts] = pages;
-
-  if (!featured) return null;
-  return (
-    <section
-      className="mt-16 border-t-2 border-black pt-7 md:mt-20"
-      aria-label="Blog posts"
-    >
-      <p className="font-mono text-xs tracking-[0.16em] text-black/55 uppercase">
-        Latest post
-      </p>
-      <article className="mt-5 border-b border-black/20 pb-10 md:grid md:grid-cols-[minmax(0,1fr)_12rem] md:gap-12">
-        <div>
-          <p className="font-mono text-xs tracking-[0.12em] text-black/55 uppercase">
-            {formatPublishedDate(featured.published)}
-          </p>
-          <h2 className="font-display mt-4 text-4xl font-semibold tracking-[-0.05em] md:text-6xl">
-            <a
-              className="transition-colors hover:text-black/55 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-black"
-              href={`/blog/${featured.slug}`}
-            >
-              {featured.title}
-            </a>
-          </h2>
-        </div>
-        <p className="mt-5 max-w-sm leading-7 text-black/70 md:mt-1">
-          {featured.summary}
-        </p>
-      </article>
-      <div>
-        {posts.map((post) => (
-          <article
-            key={post.slug}
-            className="grid gap-3 border-b border-black/15 py-7 md:grid-cols-[10rem_minmax(0,1fr)_minmax(14rem,0.7fr)] md:gap-8"
-          >
-            <p className="font-mono text-xs tracking-[0.12em] text-black/55 uppercase">
-              {formatPublishedDate(post.published)}
-            </p>
-            <h2 className="font-display text-2xl font-semibold tracking-[-0.035em] md:text-3xl">
-              <a href={`/blog/${post.slug}`}>{post.title}</a>
-            </h2>
-            <p className="leading-7 text-black/70">{post.summary}</p>
-          </article>
-        ))}
-      </div>
-    </section>
-  );
-}
-
 export function SectionIndexPage({
   section,
   path,
@@ -184,11 +127,11 @@ export function SectionIndexPage({
     <main className="mx-auto max-w-7xl px-5 pb-16 sm:px-8 lg:px-12">
       <PageHeader navigation={navigation} />
       {sitePage ? (
-        <section className="py-16 md:py-24">
-          <Intro page={sitePage} />
-          {section === "blog" ? (
-            <BlogPostList pages={pages} />
-          ) : (
+        section === "blog" ? (
+          <BlogIndex page={sitePage} posts={pages} topics={topics} />
+        ) : (
+          <section className="py-16 md:py-24">
+            <Intro page={sitePage} />
             <div className="mt-14 border-t border-black/20">
               {pages.map((page, index) => (
                 <article
@@ -205,8 +148,8 @@ export function SectionIndexPage({
                 </article>
               ))}
             </div>
-          )}
-        </section>
+          </section>
+        )
       ) : (
         <LoadingOrError error={error} />
       )}
@@ -239,7 +182,9 @@ export function ArticlePage({
   return (
     <main className="mx-auto max-w-7xl px-5 pb-16 sm:px-8 lg:px-12">
       <PageHeader navigation={navigation} />
-      {page ? (
+      {page && section === "blog" ? (
+        <BlogArticle page={page} topics={topics} />
+      ) : page ? (
         <article className="max-w-3xl py-16 md:py-24">
           <a
             className="font-mono text-xs tracking-[0.14em] text-black/55 uppercase"
@@ -251,13 +196,8 @@ export function ArticlePage({
             {page.title}
           </h1>
           <p className="mt-7 text-lg leading-8 text-black/75">{page.summary}</p>
-          {section === "blog" ? (
-            <p className="mt-5 font-mono text-xs tracking-[0.12em] text-black/55 uppercase">
-              {formatPublishedDate(page.published)}
-            </p>
-          ) : null}
           <div
-            className="mt-10 leading-8 text-black/80 [&_h2]:mt-12 [&_h2]:font-display [&_h2]:text-3xl [&_h2]:font-semibold [&_h2]:tracking-[-0.04em] [&_p]:mt-5 [&_a]:underline [&_a]:underline-offset-4"
+            className="article-prose mt-10"
             dangerouslySetInnerHTML={{ __html: page.body_html }}
           />
           {page.repository ? (

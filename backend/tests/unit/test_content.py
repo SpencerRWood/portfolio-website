@@ -88,6 +88,46 @@ def test_loader_sorts_content_by_section_then_order(tmp_path: Path) -> None:
     ]
 
 
+def test_loader_sorts_blog_entries_by_newest_publication_date(tmp_path: Path) -> None:
+    write_page(
+        tmp_path,
+        "blog",
+        "older.md.j2",
+        """---
+title: Older
+slug: older
+section: blog
+order: 10
+published: 2026-01-01
+summary: An older post.
+---
+
+Older.
+""",
+    )
+    write_page(
+        tmp_path,
+        "blog",
+        "newer.md.j2",
+        """---
+title: Newer
+slug: newer
+section: blog
+order: 20
+published: 2026-09-18
+summary: A newer post.
+---
+
+Newer.
+""",
+    )
+
+    assert [page.slug for page in ContentLoader(tmp_path).discover()] == [
+        "newer",
+        "older",
+    ]
+
+
 def test_navigation_is_derived_from_nav_metadata(tmp_path: Path) -> None:
     partials = tmp_path / "_partials"
     partials.mkdir()

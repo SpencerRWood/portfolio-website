@@ -17,6 +17,8 @@ vi.mock("../src/api/client", async (importOriginal) => {
         {
           title: "Designing events as data contracts",
           slug: "designing-events-as-data-contracts",
+          topics: ["data-generation"],
+          published: "2026-09-18",
           featured: true,
         },
       ],
@@ -83,6 +85,8 @@ vi.mock("../src/api/client", async (importOriginal) => {
         title: "Data Modeling",
         slug: "data-modeling",
         summary: "How data is represented.",
+        topics: ["data-modeling"],
+        published: "2026-09-18",
       },
     ]),
     getContentPage: vi.fn().mockResolvedValue({
@@ -165,11 +169,15 @@ describe("App", () => {
     window.history.pushState({}, "", "/blog");
     render(<App />);
 
-    expect(await screen.findByText("Latest post")).toBeInTheDocument();
+    expect(await screen.findByText("Featured note")).toBeInTheDocument();
     expect(
-      within(screen.getByRole("region", { name: "Blog posts" })).getByRole("link", {
-        name: "Data Modeling",
-      }),
+      screen.getByRole("navigation", { name: "Writing topics" }),
+    ).toHaveTextContent("Data Modeling");
+    expect(
+      within(screen.getAllByRole("heading", { name: "Data Modeling" })[0]).getByRole(
+        "link",
+        { name: "Data Modeling" },
+      ),
     ).toHaveAttribute("href", "/blog/data-modeling");
     window.history.pushState({}, "", "/");
   });

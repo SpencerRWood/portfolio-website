@@ -8,6 +8,7 @@ import {
 } from "../analytics/events";
 import { getHomepageContent, type HomepageContent } from "../api/client";
 import { ContactForm } from "../components/ContactForm";
+import { formatPublishedDate, topicName } from "../components/blog/blogMetadata";
 import { TopicList } from "../components/TopicList";
 import { SiteFooter } from "../components/SiteFooter";
 
@@ -156,11 +157,21 @@ export function HomePage() {
           {(content?.blog.filter((entry) => entry.featured) ?? []).map((entry) => (
             <a
               key={entry.slug}
-              className="flex items-center justify-between gap-6 border-b border-black/15 py-5 font-display text-xl font-medium tracking-[-0.025em] transition-colors hover:text-black/55 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-black md:text-2xl"
+              className="group grid gap-2 border-b border-black/15 py-6 transition-colors focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-black md:grid-cols-[11rem_minmax(0,1fr)_auto] md:items-baseline md:gap-6"
               href={`/blog/${entry.slug}`}
               onClick={() => trackNavigation(`/blog/${entry.slug}`)}
             >
-              {entry.title}{" "}
+              <p className="font-mono text-[0.68rem] tracking-[0.1em] text-black/55 uppercase">
+                <time dateTime={entry.published ?? undefined}>
+                  {formatPublishedDate(entry.published)}
+                </time>
+                {entry.topics[0]
+                  ? ` · ${topicName(entry.topics[0], content?.topics ?? [])}`
+                  : null}
+              </p>
+              <h3 className="font-display text-xl font-medium tracking-[-0.025em] transition-colors group-hover:text-black/55 md:text-2xl">
+                {entry.title}
+              </h3>
               <span className="font-mono text-sm text-black/45" aria-hidden="true">
                 →
               </span>
