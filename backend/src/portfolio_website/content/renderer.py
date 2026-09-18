@@ -1,12 +1,15 @@
 """Jinja2 and Markdown rendering for trusted repository content."""
 
 from pathlib import Path
+from typing import Any
 
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
 from markdown import markdown
 
 
-def render_document(template_source: str, content_root: Path) -> str:
+def render_document(
+    template_source: str, content_root: Path, context: dict[str, Any] | None = None
+) -> str:
     """Render a content body, allowing includes rooted at ``content_root``."""
     environment = Environment(
         loader=FileSystemLoader(content_root),
@@ -14,7 +17,7 @@ def render_document(template_source: str, content_root: Path) -> str:
         keep_trailing_newline=True,
         undefined=StrictUndefined,
     )
-    return environment.from_string(template_source).render()
+    return environment.from_string(template_source).render(context or {})
 
 
 def render_markdown(markdown_source: str) -> str:

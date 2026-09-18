@@ -20,7 +20,12 @@ export function TopicList({ topics, onEngage }: TopicListProps) {
             {String(index + 1).padStart(2, "0")}
           </p>
           <h3 className="font-display text-2xl font-semibold tracking-[-0.035em] md:text-3xl">
-            {topic.title}
+            <a
+              className="transition-colors hover:text-black/55 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-black"
+              href={`/topics/${topic.slug}`}
+            >
+              {topic.title}
+            </a>
           </h3>
           <p className="max-w-xl leading-7 text-black/70">{topic.summary}</p>
         </article>

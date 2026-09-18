@@ -33,14 +33,14 @@ featured: false
 def test_loader_parses_front_matter_and_renders_jinja_markdown(tmp_path: Path) -> None:
     partials = tmp_path / "_partials"
     partials.mkdir()
-    (partials / "body.md.j2").write_text("**Rendered body**", encoding="utf-8")
+    (partials / "body.md.j2").write_text("**{{ page.title }}**", encoding="utf-8")
     write_page(tmp_path, "topics", "topic.md.j2", topic_document("analytics"))
 
     page = ContentLoader(tmp_path).discover()[0]
 
     assert page.title == "Analytics"
     assert page.nav is True
-    assert page.body_html == "<p><strong>Rendered body</strong></p>"
+    assert page.body_html == "<p><strong>Analytics</strong></p>"
 
 
 def test_front_matter_requires_expected_delimiters(tmp_path: Path) -> None:
@@ -55,12 +55,12 @@ def test_loader_rejects_duplicate_slugs(tmp_path: Path) -> None:
     write_page(tmp_path, "topics", "first.md.j2", topic_document("duplicate"))
     write_page(
         tmp_path,
-        "writing",
+        "blog",
         "second.md.j2",
         """---
 title: Duplicate
 slug: duplicate
-section: writing
+section: blog
 summary: A test entry.
 published: 2026-09-18
 nav: false

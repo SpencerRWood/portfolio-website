@@ -22,7 +22,8 @@ def test_contact_submission_returns_explicit_success(
     monkeypatch.setattr(contact, "persist_contact_submission", lambda **_: 12)
 
     response = client().post(
-        "/contact", json={"name": "Ada", "email": "ada@example.com", "message": "Hello"}
+        "/api/contact",
+        json={"name": "Ada", "email": "ada@example.com", "message": "Hello"},
     )
 
     assert response.status_code == 201
@@ -31,7 +32,7 @@ def test_contact_submission_returns_explicit_success(
 
 def test_contact_submission_rejects_invalid_input() -> None:
     response = client().post(
-        "/contact", json={"name": " ", "email": "not-an-email", "message": " "}
+        "/api/contact", json={"name": " ", "email": "not-an-email", "message": " "}
     )
 
     assert response.status_code == 422
@@ -46,7 +47,8 @@ def test_contact_submission_does_not_report_success_after_persistence_failure(
     monkeypatch.setattr(contact, "persist_contact_submission", fail)
 
     response = client().post(
-        "/contact", json={"name": "Ada", "email": "ada@example.com", "message": "Hello"}
+        "/api/contact",
+        json={"name": "Ada", "email": "ada@example.com", "message": "Hello"},
     )
 
     assert response.status_code == 503

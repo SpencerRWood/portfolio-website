@@ -1,14 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 
 import {
-  trackContactConversion,
   trackNavigation,
   trackOutboundReference,
   trackPageView,
   trackTopicEngagement,
 } from "../analytics/events";
-import { getHomepageContent, submitContact, type HomepageContent } from "../api/client";
+import { getHomepageContent, type HomepageContent } from "../api/client";
+import { ContactForm } from "../components/ContactForm";
 import { TopicList } from "../components/TopicList";
+import { SiteFooter } from "../components/SiteFooter";
 
 function SectionHeading({
   eyebrow,
@@ -35,11 +36,10 @@ function SectionHeading({
 }
 
 export function HomePage() {
-  const [contactStatus, setContactStatus] = useState<string | null>(null);
   const [content, setContent] = useState<HomepageContent | null>(null);
   const [contentError, setContentError] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const engagedTopics = useRef(new Set<string>());
+  const homepage = content?.homepage;
 
   useEffect(() => {
     trackPageView();
@@ -55,27 +55,6 @@ export function HomePage() {
     }
   }
 
-  async function submitContactForm(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const form = new FormData(event.currentTarget);
-    setIsSubmitting(true);
-    setContactStatus(null);
-    try {
-      await submitContact({
-        name: String(form.get("name") ?? ""),
-        email: String(form.get("email") ?? ""),
-        message: String(form.get("message") ?? ""),
-      });
-      event.currentTarget.reset();
-      setContactStatus("Thanks — your message has been sent.");
-      trackContactConversion();
-    } catch {
-      setContactStatus("Your message could not be sent. Please try again later.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  }
-
   return (
     <main className="mx-auto max-w-7xl px-5 pb-16 sm:px-8 lg:px-12">
       <header className="border-b border-black/20 py-6 md:py-8">
@@ -84,7 +63,7 @@ export function HomePage() {
             className="font-mono text-xs font-medium tracking-[0.14em] uppercase transition-opacity hover:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-black"
             href="#top"
           >
-            Spencer Wood
+            {homepage?.identity}
           </a>
           <a
             className="font-mono text-[0.68rem] tracking-[0.12em] text-black/55 uppercase transition-colors hover:text-black focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-black"
@@ -96,19 +75,14 @@ export function HomePage() {
         </div>
         <nav className="mt-7 overflow-x-auto pb-1" aria-label="Primary navigation">
           <ul className="flex w-max items-center gap-x-6 font-mono text-xs tracking-[0.08em] uppercase md:gap-x-8">
-            {[
-              ["Topics", "topics"],
-              ["Writing", "writing"],
-              ["Projects", "projects"],
-              ["About", "about"],
-            ].map(([label, destination]) => (
+            {(content?.navigation ?? []).map(({ title, destination }) => (
               <li key={destination}>
                 <a
                   className="whitespace-nowrap text-black/65 transition-colors hover:text-black focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-black"
-                  href={`#${destination}`}
+                  href={destination}
                   onClick={() => trackNavigation(destination)}
                 >
-                  {label}
+                  {title}
                 </a>
               </li>
             ))}
@@ -123,33 +97,32 @@ export function HomePage() {
       >
         <div>
           <p className="font-mono text-xs tracking-[0.16em] text-black/55 uppercase">
-            Notes and working examples
+            {homepage?.hero_eyebrow}
           </p>
           <h1
             id="hero-heading"
             className="font-display mt-5 max-w-4xl text-5xl leading-[0.94] font-semibold tracking-[-0.055em] md:text-7xl lg:text-8xl"
           >
-            How analytical systems are built
+            {homepage?.title}
           </h1>
           <p className="mt-8 max-w-2xl text-lg leading-8 text-black/75 md:text-xl md:leading-9">
-            Notes, examples, and working projects on how data moves from collection and
-            modeling through analysis, machine learning, and reporting.
+            {homepage?.summary}
           </p>
           <a
             className="mt-9 inline-flex items-center gap-3 bg-black px-5 py-3 font-mono text-xs tracking-[0.1em] text-white uppercase transition-colors hover:bg-black/75 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-black"
-            href="#topics"
-            onClick={() => trackNavigation("topics")}
+            href={homepage?.primary_link_destination ?? "/topics"}
+            onClick={() =>
+              trackNavigation(homepage?.primary_link_destination ?? "/topics")
+            }
           >
-            Explore topics <span aria-hidden="true">→</span>
+            {homepage?.primary_link_label} <span aria-hidden="true">→</span>
           </a>
         </div>
         <aside className="border-l border-black/20 pl-5 md:self-end">
           <p className="font-mono text-[0.68rem] tracking-[0.14em] text-black/55 uppercase">
-            Topics
+            {homepage?.aside_title}
           </p>
-          <p className="mt-3 leading-7 text-black/75">
-            Data systems, modeling, analysis, machine learning, and communication.
-          </p>
+          <p className="mt-3 leading-7 text-black/75">{homepage?.aside_summary}</p>
         </aside>
       </section>
 
@@ -159,9 +132,9 @@ export function HomePage() {
         aria-labelledby="topics-heading"
       >
         <SectionHeading
-          eyebrow="01 / Topics"
-          title="Topics"
-          copy="A few areas I keep coming back to."
+          eyebrow={homepage?.topics_eyebrow ?? ""}
+          title={homepage?.topics_title ?? ""}
+          copy={homepage?.topics_summary ?? ""}
         />
         <TopicList
           topics={content?.topics ?? []}
@@ -170,22 +143,22 @@ export function HomePage() {
       </section>
 
       <section
-        id="writing"
+        id="blog"
         className="border-t border-black/20 py-12 md:py-16"
-        aria-labelledby="writing-heading"
+        aria-labelledby="blog-heading"
       >
         <SectionHeading
-          eyebrow="02 / Writing"
-          title="Selected writing"
-          copy="A few deeper pieces on specific problems."
+          eyebrow={homepage?.blog_eyebrow ?? ""}
+          title={homepage?.blog_title ?? ""}
+          copy={homepage?.blog_summary ?? ""}
         />
         <div className="border-t border-black/20">
-          {(content?.writing.filter((entry) => entry.featured) ?? []).map((entry) => (
+          {(content?.blog.filter((entry) => entry.featured) ?? []).map((entry) => (
             <a
               key={entry.slug}
               className="flex items-center justify-between gap-6 border-b border-black/15 py-5 font-display text-xl font-medium tracking-[-0.025em] transition-colors hover:text-black/55 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-black md:text-2xl"
-              href="#writing"
-              onClick={() => trackNavigation("writing")}
+              href={`/blog/${entry.slug}`}
+              onClick={() => trackNavigation(`/blog/${entry.slug}`)}
             >
               {entry.title}{" "}
               <span className="font-mono text-sm text-black/45" aria-hidden="true">
@@ -196,10 +169,10 @@ export function HomePage() {
         </div>
         <a
           className="mt-7 inline-flex items-center gap-2 font-mono text-xs tracking-[0.1em] underline decoration-black/35 underline-offset-4 uppercase transition-colors hover:text-black/55 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-black"
-          href="#writing"
-          onClick={() => trackNavigation("writing")}
+          href="/blog"
+          onClick={() => trackNavigation("/blog")}
         >
-          View all writing <span aria-hidden="true">→</span>
+          View all blog posts <span aria-hidden="true">→</span>
         </a>
       </section>
 
@@ -209,9 +182,9 @@ export function HomePage() {
         aria-labelledby="projects-heading"
       >
         <SectionHeading
-          eyebrow="03 / Projects"
-          title="Projects"
-          copy="Working examples tied to the topics above."
+          eyebrow={homepage?.projects_eyebrow ?? ""}
+          title={homepage?.projects_title ?? ""}
+          copy={homepage?.projects_summary ?? ""}
         />
         <div className="border-t border-black/20">
           {(content?.projects.filter((project) => project.featured) ?? []).map(
@@ -223,12 +196,12 @@ export function HomePage() {
                 <h3 className="font-display text-2xl font-semibold tracking-[-0.035em] md:text-3xl">
                   <a
                     className="transition-colors hover:text-black/55 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-black"
-                    href={project.repository ?? "#projects"}
-                    onClick={() => trackOutboundReference("projects", project.title)}
+                    href={`/projects/${project.slug}`}
+                    onClick={() => trackNavigation(`/projects/${project.slug}`)}
                   >
                     {project.title}{" "}
                     <span className="font-mono text-sm" aria-hidden="true">
-                      ↗
+                      →
                     </span>
                   </a>
                 </h3>
@@ -239,8 +212,8 @@ export function HomePage() {
         </div>
         <a
           className="mt-7 inline-flex items-center gap-2 font-mono text-xs tracking-[0.1em] underline decoration-black/35 underline-offset-4 uppercase transition-colors hover:text-black/55 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-black"
-          href="https://github.com/SpencerRWood"
-          onClick={() => trackOutboundReference("projects", "View all projects")}
+          href="/projects"
+          onClick={() => trackNavigation("/projects")}
         >
           View all projects <span aria-hidden="true">→</span>
         </a>
@@ -256,21 +229,19 @@ export function HomePage() {
         className="border-t border-black/20 py-12 md:grid md:grid-cols-[10rem_minmax(0,1fr)] md:gap-8 md:py-16"
       >
         <p className="font-mono text-xs tracking-[0.16em] text-black/55 uppercase">
-          04 / About
+          {homepage?.about_eyebrow}
         </p>
         <div className="mt-5 max-w-2xl md:mt-0">
           <h2 className="font-display text-3xl font-semibold tracking-[-0.045em] md:text-5xl">
-            About
+            {homepage?.about_title}
           </h2>
           <p className="mt-5 text-lg leading-8 text-black/75">
-            I’m Spencer Wood. I work on analytics, data systems, and applied machine
-            learning. This site is where I write down the parts I think are useful and
-            keep working examples alongside them.
+            {homepage?.about_summary}
           </p>
           <a
             className="mt-6 inline-flex items-center gap-2 font-mono text-xs tracking-[0.1em] underline decoration-black/35 underline-offset-4 uppercase transition-colors hover:text-black/55 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-black"
-            href="#contact"
-            onClick={() => trackNavigation("contact")}
+            href="/about"
+            onClick={() => trackNavigation("/about")}
           >
             Get in touch <span aria-hidden="true">→</span>
           </a>
@@ -292,69 +263,10 @@ export function HomePage() {
           >
             Start a conversation.
           </h2>
-          <form className="mt-8 space-y-5" onSubmit={submitContactForm}>
-            <p>
-              <label
-                className="font-mono text-[0.68rem] tracking-[0.12em] text-black/60 uppercase"
-                htmlFor="contact-name"
-              >
-                Name
-              </label>
-              <input
-                className="mt-2 block w-full border-b border-black/30 bg-transparent px-0 py-3 outline-none transition-colors focus:border-black"
-                id="contact-name"
-                name="name"
-                required
-                maxLength={120}
-              />
-            </p>
-            <p>
-              <label
-                className="font-mono text-[0.68rem] tracking-[0.12em] text-black/60 uppercase"
-                htmlFor="contact-email"
-              >
-                Email
-              </label>
-              <input
-                className="mt-2 block w-full border-b border-black/30 bg-transparent px-0 py-3 outline-none transition-colors focus:border-black"
-                id="contact-email"
-                name="email"
-                type="email"
-                required
-                maxLength={254}
-              />
-            </p>
-            <p>
-              <label
-                className="font-mono text-[0.68rem] tracking-[0.12em] text-black/60 uppercase"
-                htmlFor="contact-message"
-              >
-                Message
-              </label>
-              <textarea
-                className="mt-2 block min-h-28 w-full resize-y border-b border-black/30 bg-transparent px-0 py-3 outline-none transition-colors focus:border-black"
-                id="contact-message"
-                name="message"
-                required
-                maxLength={5000}
-              />
-            </p>
-            <button
-              className="inline-flex items-center gap-3 bg-black px-5 py-3 font-mono text-xs tracking-[0.1em] text-white uppercase transition-colors hover:bg-black/75 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-black disabled:cursor-not-allowed disabled:bg-black/45"
-              type="submit"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? "Sending…" : "Send message"}{" "}
-              <span aria-hidden="true">↗</span>
-            </button>
-          </form>
-          {contactStatus ? (
-            <p className="mt-5 border-l-2 border-black pl-3 text-sm" role="status">
-              {contactStatus}
-            </p>
-          ) : null}
+          <ContactForm />
         </div>
       </section>
+      <SiteFooter topics={content?.topics ?? []} />
     </main>
   );
 }

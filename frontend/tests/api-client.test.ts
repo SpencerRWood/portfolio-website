@@ -1,6 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { getHomepageContent, requestBackend, submitContact } from "../src/api/client";
+import {
+  getContentPage,
+  getHomepageContent,
+  getSitePage,
+  requestBackend,
+  submitContact,
+} from "../src/api/client";
 
 describe("backend API client", () => {
   it("requests the backend health endpoint", async () => {
@@ -37,7 +43,7 @@ describe("contact API client", () => {
         request,
       ),
     ).resolves.toEqual({ id: 7, status: "accepted" });
-    expect(request).toHaveBeenCalledWith("http://localhost:8000/contact", {
+    expect(request).toHaveBeenCalledWith("http://localhost:8000/api/contact", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name: "Ada", email: "ada@example.com", message: "Hello" }),
@@ -46,6 +52,29 @@ describe("contact API client", () => {
 });
 
 describe("content API client", () => {
+  it("loads authored site pages and individual content pages", async () => {
+    const request = vi
+      .fn()
+      .mockImplementation(
+        () => new Response(JSON.stringify({ slug: "data-modeling" }), { status: 200 }),
+      );
+
+    await expect(getSitePage("topics", request)).resolves.toEqual({
+      slug: "data-modeling",
+    });
+    await expect(getContentPage("topics", "data-modeling", request)).resolves.toEqual({
+      slug: "data-modeling",
+    });
+    expect(request).toHaveBeenNthCalledWith(
+      1,
+      "http://localhost:8000/content/site/topics",
+    );
+    expect(request).toHaveBeenNthCalledWith(
+      2,
+      "http://localhost:8000/content/topics/data-modeling",
+    );
+  });
+
   it("loads homepage sections from the backend", async () => {
     const request = vi
       .fn()
@@ -53,14 +82,24 @@ describe("content API client", () => {
 
     await expect(getHomepageContent(request)).resolves.toEqual({
       topics: [],
-      writing: [],
+      blog: [],
       projects: [],
+      homepage: [],
+      navigation: [],
     });
     expect(request).toHaveBeenNthCalledWith(1, "http://localhost:8000/content/topics");
-    expect(request).toHaveBeenNthCalledWith(2, "http://localhost:8000/content/writing");
+    expect(request).toHaveBeenNthCalledWith(2, "http://localhost:8000/content/blog");
     expect(request).toHaveBeenNthCalledWith(
       3,
       "http://localhost:8000/content/projects",
+    );
+    expect(request).toHaveBeenNthCalledWith(
+      4,
+      "http://localhost:8000/content/site/homepage",
+    );
+    expect(request).toHaveBeenNthCalledWith(
+      5,
+      "http://localhost:8000/content/navigation",
     );
   });
 });

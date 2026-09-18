@@ -1,0 +1,7 @@
+{% if related_topics %}
+## Related topics
+
+{% for topic in related_topics %}
+- {{ topic.title }}
+{% endfor %}
+{% endif %}

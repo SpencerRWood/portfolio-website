@@ -1,21 +1,26 @@
 """Discovery and validation for Jinja2-backed Markdown content."""
 
 from collections.abc import Iterable
+from dataclasses import replace
 from datetime import date
 from pathlib import Path
 from typing import Any
 
 from portfolio_website.content.models import (
+    BlogEntry,
     ContentPage,
     ContentSection,
+    FooterNavigation,
+    Homepage,
     NavigationItem,
     Project,
+    SiteNavigationItem,
+    SitePage,
     Topic,
-    WritingEntry,
 )
 from portfolio_website.content.renderer import render_document, render_markdown
 
-CONTENT_SECTIONS: tuple[ContentSection, ...] = ("topics", "writing", "projects")
+CONTENT_SECTIONS: tuple[ContentSection, ...] = ("topics", "blog", "projects")
 CONTENT_ROOT = Path(__file__).parent
 
 
@@ -86,7 +91,7 @@ def _optional_topics(metadata: dict[str, Any], path: Path) -> tuple[str, ...]:
 
 
 def _page_type(section: ContentSection) -> type[ContentPage]:
-    return {"topics": Topic, "writing": WritingEntry, "projects": Project}[section]
+    return {"topics": Topic, "blog": BlogEntry, "projects": Project}[section]
 
 
 class ContentLoader:
@@ -97,13 +102,30 @@ class ContentLoader:
 
     def discover(self) -> list[ContentPage]:
         """Discover, validate, render, and deterministically sort all pages."""
-        pages = [
-            self._load_path(path, section)
+        documents = [
+            (path, section, *parse_front_matter(path.read_text(encoding="utf-8"), path))
             for section in CONTENT_SECTIONS
             for path in sorted((self.content_root / section).glob("*.md.j2"))
         ]
+        pages = [
+            self._page_from_metadata(path, section, metadata)
+            for path, section, metadata, _ in documents
+        ]
         self._validate_unique_slugs(pages)
-        return sorted(pages, key=lambda page: (page.section, page.order, page.title))
+        rendered = [
+            replace(
+                page,
+                body_html=render_markdown(
+                    render_document(
+                        markdown_source,
+                        self.content_root,
+                        self._template_context(page, pages),
+                    )
+                ),
+            )
+            for page, (_, _, _, markdown_source) in zip(pages, documents, strict=True)
+        ]
+        return sorted(rendered, key=lambda page: (page.section, page.order, page.title))
 
     def navigation(self) -> list[NavigationItem]:
         """Return topic navigation derived from pages that opt into it."""
@@ -113,10 +135,9 @@ class ContentLoader:
             if page.nav
         ]
 
-    def _load_path(self, path: Path, expected_section: ContentSection) -> ContentPage:
-        metadata, markdown_source = parse_front_matter(
-            path.read_text(encoding="utf-8"), path
-        )
+    def _page_from_metadata(
+        self, path: Path, expected_section: ContentSection, metadata: dict[str, Any]
+    ) -> ContentPage:
         section = _required_string(metadata, "section", path)
         if section not in CONTENT_SECTIONS:
             raise ContentError(f"{path}: section must be one of {CONTENT_SECTIONS}.")
@@ -140,9 +161,7 @@ class ContentLoader:
             slug=_required_string(metadata, "slug", path),
             section=typed_section,
             summary=_required_string(metadata, "summary", path),
-            body_html=render_markdown(
-                render_document(markdown_source, self.content_root)
-            ),
+            body_html="",
             order=order,
             topics=_optional_topics(metadata, path),
             nav=_optional_bool(metadata, "nav", path),
@@ -150,6 +169,30 @@ class ContentLoader:
             published=published,
             repository=repository,
         )
+
+    @staticmethod
+    def _template_context(
+        page: ContentPage, pages: list[ContentPage]
+    ) -> dict[str, Any]:
+        related_topics = [
+            item
+            for item in pages
+            if item.section == "topics" and item.slug in page.topics
+        ]
+        return {
+            "page": page,
+            "related_topics": related_topics,
+            "related_blog": [
+                item
+                for item in pages
+                if item.section == "blog" and page.slug in item.topics
+            ],
+            "related_projects": [
+                item
+                for item in pages
+                if item.section == "projects" and page.slug in item.topics
+            ],
+        }
 
     @staticmethod
     def _validate_unique_slugs(pages: Iterable[ContentPage]) -> None:
@@ -163,3 +206,70 @@ class ContentLoader:
 def load_site_content() -> list[ContentPage]:
     """Load the repository's production editorial content."""
     return ContentLoader().discover()
+
+
+def _site_metadata(filename: str) -> dict[str, Any]:
+    path = CONTENT_ROOT / "site" / filename
+    metadata, _ = parse_front_matter(path.read_text(encoding="utf-8"), path)
+    return metadata
+
+
+def load_homepage() -> Homepage:
+    """Load the homepage's editorial copy from its content document."""
+    metadata = _site_metadata("homepage.md.j2")
+    path = CONTENT_ROOT / "site" / "homepage.md.j2"
+    return Homepage(
+        **{
+            field: _required_string(metadata, field, path)
+            for field in Homepage.__dataclass_fields__
+        }
+    )
+
+
+def load_site_page(slug: str) -> SitePage:
+    """Load and render one stable site page without exposing file paths."""
+    path = CONTENT_ROOT / "site" / f"{slug}.md.j2"
+    if not path.is_file():
+        raise ContentError(f"Site page was not found: {slug}.")
+    metadata, markdown_source = parse_front_matter(
+        path.read_text(encoding="utf-8"), path
+    )
+    if _required_string(metadata, "slug", path) != slug:
+        raise ContentError(f"{path}: slug must match its filename.")
+    return SitePage(
+        title=_required_string(metadata, "title", path),
+        slug=slug,
+        summary=_required_string(metadata, "summary", path),
+        body_html=render_markdown(render_document(markdown_source, CONTENT_ROOT)),
+    )
+
+
+def load_site_navigation() -> list[SiteNavigationItem]:
+    """Load stable global navigation from a compact content list."""
+    path = CONTENT_ROOT / "_partials" / "header.md.j2"
+    metadata, _ = parse_front_matter(path.read_text(encoding="utf-8"), path)
+    return _navigation_items(metadata, path)
+
+
+def load_footer_navigation() -> FooterNavigation:
+    """Load footer navigation and its topic-column label from content."""
+    path = CONTENT_ROOT / "_partials" / "footer.md.j2"
+    metadata, _ = parse_front_matter(path.read_text(encoding="utf-8"), path)
+    return FooterNavigation(
+        topics_title=_required_string(metadata, "topics_title", path),
+        items=tuple(_navigation_items(metadata, path)),
+    )
+
+
+def _navigation_items(metadata: dict[str, Any], path: Path) -> list[SiteNavigationItem]:
+    """Parse ordered title|destination navigation entries from a partial."""
+    items = metadata.get("items")
+    if not isinstance(items, list) or not all(isinstance(item, str) for item in items):
+        raise ContentError(f"{path}: items must be a list of title|destination values.")
+    navigation = []
+    for order, item in enumerate(items, start=1):
+        title, separator, destination = item.partition("|")
+        if not separator or not title or not destination:
+            raise ContentError(f"{path}: each item must use title|destination.")
+        navigation.append(SiteNavigationItem(title, destination, order))
+    return navigation
