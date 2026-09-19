@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.5.3 (2026-09-19)
+
+### Bug Fixes
+
+- Remove undeclared release secret
+  ([`4e5d4cb`](https://github.com/SpencerRWood/portfolio-website/commit/4e5d4cb1994f14d05d843d3e7ce325beefdb32c2))
+
+
 ## v0.5.2 (2026-09-19)
 
 ### Bug Fixes
