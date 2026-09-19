@@ -1,10 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
-import {
-  trackNavigation,
-  trackPageView,
-  trackTopicEngagement,
-} from "../analytics/events";
+import { trackClick, trackPageView } from "../analytics/events";
 import { getHomepageContent, type HomepageContent } from "../api/client";
 import { ContactForm } from "../components/ContactForm";
 import { formatPublishedDate, topicName } from "../components/blog/blogMetadata";
@@ -38,7 +34,6 @@ function SectionHeading({
 export function HomePage() {
   const [content, setContent] = useState<HomepageContent | null>(null);
   const [contentError, setContentError] = useState(false);
-  const engagedTopics = useRef(new Set<string>());
   const trackedPage = useRef<string | null>(null);
   const homepage = content?.homepage;
 
@@ -59,15 +54,12 @@ export function HomePage() {
       .catch(() => setContentError(true));
   }, []);
 
-  function trackFirstTopicEngagement(topicSlug: string) {
-    if (!engagedTopics.current.has(topicSlug)) {
-      engagedTopics.current.add(topicSlug);
-      trackTopicEngagement(topicSlug);
-    }
-  }
-
   return (
-    <SiteLayout navigation={content?.navigation ?? []} topics={content?.topics ?? []}>
+    <SiteLayout
+      navigation={content?.navigation ?? []}
+      topics={content?.topics ?? []}
+      source={{ sourcePageType: "home", sourcePageSlug: "home" }}
+    >
       <section
         id="top"
         className="grid gap-8 py-16 md:grid-cols-[minmax(0,1fr)_13rem] md:gap-16 md:py-24"
@@ -90,7 +82,12 @@ export function HomePage() {
             className="mt-9 inline-flex items-center gap-3 bg-black px-5 py-3 font-mono text-xs tracking-[0.1em] text-white uppercase transition-colors hover:bg-black/75 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-black"
             href={homepage?.primary_link_destination ?? "/topics"}
             onClick={() =>
-              trackNavigation(homepage?.primary_link_destination ?? "/topics")
+              trackClick({
+                sourcePageType: "home",
+                sourcePageSlug: "home",
+                targetType: "internal_page",
+                destination: homepage?.primary_link_destination ?? "/topics",
+              })
             }
           >
             {homepage?.primary_link_label} <span aria-hidden="true">→</span>
@@ -116,7 +113,7 @@ export function HomePage() {
         />
         <TopicList
           topics={content?.topics ?? []}
-          onEngage={trackFirstTopicEngagement}
+          source={{ sourcePageType: "home", sourcePageSlug: "home" }}
         />
       </section>
 
@@ -136,7 +133,16 @@ export function HomePage() {
               key={entry.slug}
               className="group grid gap-2 border-b border-black/15 py-6 transition-colors focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-black md:grid-cols-[11rem_minmax(0,1fr)_auto] md:items-baseline md:gap-6"
               href={`/blog/${entry.slug}`}
-              onClick={() => trackNavigation(`/blog/${entry.slug}`)}
+              onClick={() =>
+                trackClick({
+                  sourcePageType: "home",
+                  sourcePageSlug: "home",
+                  targetType: "internal_page",
+                  targetPageType: "blog_article",
+                  targetSlug: entry.slug,
+                  destination: `/blog/${entry.slug}`,
+                })
+              }
             >
               <p className="font-mono text-[0.68rem] tracking-[0.1em] text-black/55 uppercase">
                 <time dateTime={entry.published ?? undefined}>
@@ -158,7 +164,16 @@ export function HomePage() {
         <a
           className="mt-7 inline-flex items-center gap-2 font-mono text-xs tracking-[0.1em] underline decoration-black/35 underline-offset-4 uppercase transition-colors hover:text-black/55 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-black"
           href="/blog"
-          onClick={() => trackNavigation("/blog")}
+          onClick={() =>
+            trackClick({
+              sourcePageType: "home",
+              sourcePageSlug: "home",
+              targetType: "internal_page",
+              targetPageType: "section_index",
+              targetSlug: "blog",
+              destination: "/blog",
+            })
+          }
         >
           View all writing <span aria-hidden="true">→</span>
         </a>
@@ -185,7 +200,16 @@ export function HomePage() {
                   <a
                     className="transition-colors hover:text-black/55 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-black"
                     href={`/projects/${project.slug}`}
-                    onClick={() => trackNavigation(`/projects/${project.slug}`)}
+                    onClick={() =>
+                      trackClick({
+                        sourcePageType: "home",
+                        sourcePageSlug: "home",
+                        targetType: "internal_page",
+                        targetPageType: "project",
+                        targetSlug: project.slug,
+                        destination: `/projects/${project.slug}`,
+                      })
+                    }
                   >
                     {project.title}{" "}
                     <span className="font-mono text-sm" aria-hidden="true">
@@ -201,7 +225,16 @@ export function HomePage() {
         <a
           className="mt-7 inline-flex items-center gap-2 font-mono text-xs tracking-[0.1em] underline decoration-black/35 underline-offset-4 uppercase transition-colors hover:text-black/55 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-black"
           href="/projects"
-          onClick={() => trackNavigation("/projects")}
+          onClick={() =>
+            trackClick({
+              sourcePageType: "home",
+              sourcePageSlug: "home",
+              targetType: "internal_page",
+              targetPageType: "section_index",
+              targetSlug: "projects",
+              destination: "/projects",
+            })
+          }
         >
           View all projects <span aria-hidden="true">→</span>
         </a>
@@ -229,7 +262,16 @@ export function HomePage() {
           <a
             className="mt-6 inline-flex items-center gap-2 font-mono text-xs tracking-[0.1em] underline decoration-black/35 underline-offset-4 uppercase transition-colors hover:text-black/55 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-black"
             href="/about"
-            onClick={() => trackNavigation("/about")}
+            onClick={() =>
+              trackClick({
+                sourcePageType: "home",
+                sourcePageSlug: "home",
+                targetType: "internal_page",
+                targetPageType: "static_page",
+                targetSlug: "about",
+                destination: "/about",
+              })
+            }
           >
             Get in touch <span aria-hidden="true">→</span>
           </a>
@@ -251,7 +293,7 @@ export function HomePage() {
           >
             Start a conversation.
           </h2>
-          <ContactForm />
+          <ContactForm source={{ sourcePageType: "home", sourcePageSlug: "home" }} />
         </div>
       </section>
     </SiteLayout>

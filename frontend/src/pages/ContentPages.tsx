@@ -9,7 +9,7 @@ import {
   type SiteNavigationItem,
   type SitePage,
 } from "../api/client";
-import { trackPageView, type PageType } from "../analytics/events";
+import { trackClick, trackPageView, type PageType } from "../analytics/events";
 import { ContactForm } from "../components/ContactForm";
 import { BlogArticle } from "../components/blog/BlogArticle";
 import { BlogIndex } from "../components/blog/BlogIndex";
@@ -104,7 +104,11 @@ export function SectionIndexPage({
   }, [section]);
 
   return (
-    <SiteLayout navigation={navigation} topics={topics}>
+    <SiteLayout
+      navigation={navigation}
+      topics={topics}
+      source={{ sourcePageType: "section_index", sourcePageSlug: section }}
+    >
       {sitePage ? (
         section === "blog" ? (
           <BlogIndex page={sitePage} posts={pages} topics={topics} />
@@ -121,7 +125,21 @@ export function SectionIndexPage({
                     {String(index + 1).padStart(2, "0")}
                   </p>
                   <h2 className="font-display text-2xl font-semibold tracking-[-0.035em] md:text-3xl">
-                    <a href={`/${path}/${page.slug}`}>{page.title}</a>
+                    <a
+                      href={`/${path}/${page.slug}`}
+                      onClick={() =>
+                        trackClick({
+                          sourcePageType: "section_index",
+                          sourcePageSlug: section,
+                          targetType: "internal_page",
+                          targetPageType: section === "topics" ? "topic" : "project",
+                          targetSlug: page.slug,
+                          destination: `/${path}/${page.slug}`,
+                        })
+                      }
+                    >
+                      {page.title}
+                    </a>
                   </h2>
                   <p className="max-w-xl leading-7 text-black/70">{page.summary}</p>
                 </article>
@@ -170,7 +188,15 @@ export function ArticlePage({
   }, [section, slug]);
 
   return (
-    <SiteLayout navigation={navigation} topics={topics}>
+    <SiteLayout
+      navigation={navigation}
+      topics={topics}
+      source={
+        page
+          ? { sourcePageType: contentPageType(page.section), sourcePageSlug: page.slug }
+          : undefined
+      }
+    >
       {page && section === "blog" ? (
         <BlogArticle page={page} topics={topics} />
       ) : page ? (
@@ -178,6 +204,16 @@ export function ArticlePage({
           <a
             className="font-mono text-xs tracking-[0.14em] text-black/55 uppercase"
             href={`/${path}`}
+            onClick={() =>
+              trackClick({
+                sourcePageType: contentPageType(page.section),
+                sourcePageSlug: page.slug,
+                targetType: "internal_page",
+                targetPageType: "section_index",
+                targetSlug: section,
+                destination: `/${path}`,
+              })
+            }
           >
             ← {path}
           </a>
@@ -193,6 +229,15 @@ export function ArticlePage({
             <a
               className="mt-10 inline-block font-mono text-xs underline underline-offset-4 uppercase"
               href={page.repository}
+              onClick={() =>
+                trackClick({
+                  sourcePageType: contentPageType(page.section),
+                  sourcePageSlug: page.slug,
+                  targetType: "external_reference",
+                  referenceType: "repository",
+                  destination: page.repository!,
+                })
+              }
             >
               View repository ↗
             </a>
@@ -234,11 +279,21 @@ export function StaticPage({
   }, [slug]);
 
   return (
-    <SiteLayout navigation={navigation} topics={topics}>
+    <SiteLayout
+      navigation={navigation}
+      topics={topics}
+      source={
+        page ? { sourcePageType: "static_page", sourcePageSlug: page.slug } : undefined
+      }
+    >
       {page ? (
         <section className="max-w-3xl py-16 md:py-24">
           <Intro page={page} />
-          {slug === "contact" ? <ContactForm /> : null}
+          {slug === "contact" ? (
+            <ContactForm
+              source={{ sourcePageType: "static_page", sourcePageSlug: page.slug }}
+            />
+          ) : null}
         </section>
       ) : (
         <LoadingOrError error={error} />

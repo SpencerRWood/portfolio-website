@@ -2,6 +2,7 @@ import type { ContentPage } from "../../api/client";
 
 import { formatPublishedDate } from "./blogMetadata";
 import { TopicLinks } from "./TopicLinks";
+import { trackClick } from "../../analytics/events";
 
 export function BlogArticle({
   page,
@@ -16,11 +17,25 @@ export function BlogArticle({
         <a
           className="font-mono text-xs tracking-[0.12em] text-black/55 uppercase transition-colors hover:text-black focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-black"
           href="/blog"
+          onClick={() =>
+            trackClick({
+              sourcePageType: "blog_article",
+              sourcePageSlug: page.slug,
+              targetType: "internal_page",
+              targetPageType: "section_index",
+              targetSlug: "blog",
+              destination: "/blog",
+            })
+          }
         >
           ← Writing
         </a>
         <div className="mt-10 flex flex-wrap items-center gap-x-3 gap-y-2">
-          <TopicLinks topics={topics} slugs={page.topics} />
+          <TopicLinks
+            topics={topics}
+            slugs={page.topics}
+            source={{ sourcePageType: "blog_article", sourcePageSlug: page.slug }}
+          />
           <span className="text-black/30" aria-hidden="true">
             ·
           </span>
@@ -51,15 +66,44 @@ export function BlogArticle({
           Filed under
         </p>
         <div className="mt-3">
-          <TopicLinks topics={topics} slugs={page.topics} />
+          <TopicLinks
+            topics={topics}
+            slugs={page.topics}
+            source={{ sourcePageType: "blog_article", sourcePageSlug: page.slug }}
+          />
         </div>
         <div className="mt-8 flex flex-wrap gap-x-6 gap-y-4">
           {page.repository ? (
-            <a className="article-footer-link" href={page.repository}>
+            <a
+              className="article-footer-link"
+              href={page.repository}
+              onClick={() =>
+                trackClick({
+                  sourcePageType: "blog_article",
+                  sourcePageSlug: page.slug,
+                  targetType: "external_reference",
+                  referenceType: "repository",
+                  destination: page.repository!,
+                })
+              }
+            >
               GitHub / related project ↗
             </a>
           ) : null}
-          <a className="article-footer-link" href="/blog">
+          <a
+            className="article-footer-link"
+            href="/blog"
+            onClick={() =>
+              trackClick({
+                sourcePageType: "blog_article",
+                sourcePageSlug: page.slug,
+                targetType: "internal_page",
+                targetPageType: "section_index",
+                targetSlug: "blog",
+                destination: "/blog",
+              })
+            }
+          >
             ← Back to all writing
           </a>
         </div>
