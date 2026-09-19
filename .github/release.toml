@@ -1,0 +1,21 @@
+version = 1
+
+[project]
+working_directory = "backend"
+
+[python]
+version = "3.14"
+
+[validation]
+checks = ["mypy", "pytest", "pre-commit"]
+
+[build]
+python_package = true
+
+[node]
+directory = "frontend"
+version = "24"
+checks = ["lint", "typecheck", "test", "build"]
+
+[release]
+semantic_release = true
