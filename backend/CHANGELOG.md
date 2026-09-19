@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.5.2 (2026-09-19)
+
+### Bug Fixes
+
+- Normalize analytics event taxonomy
+  ([`0eedbab`](https://github.com/SpencerRWood/portfolio-website/commit/0eedbabda74e1ef7b2ade4cb47f6b34e74cbaff5))
+
+
 ## v0.5.1 (2026-09-18)
 
 ### Bug Fixes
