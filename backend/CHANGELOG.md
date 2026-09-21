@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.5.4 (2026-09-21)
+
+### Bug Fixes
+
+- Pass configured database url to website backend
+  ([`9ef67b2`](https://github.com/SpencerRWood/portfolio-website/commit/9ef67b288aec621cf31c9d4b4c2cbcd636ed0eb9))
+
+
 ## v0.5.3 (2026-09-19)
 
 ### Bug Fixes
