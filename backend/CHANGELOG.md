@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.6.0 (2026-09-22)
+
+### Features
+
+- **release**: Publish website container to GHCR
+  ([`3048888`](https://github.com/SpencerRWood/portfolio-website/commit/304888825ac5b40d31b8a89d841952f834256302))
+
+
 ## v0.5.4 (2026-09-21)
 
 ### Bug Fixes
