@@ -1,5 +1,7 @@
 import { RudderAnalytics } from "@rudderstack/analytics-js";
 
+import { runtimeConfig } from "../runtimeConfig";
+
 /**
  * Application-owned event contract. Properties use stable, snake_case keys so
  * downstream dbt models can use the raw event stream without parsing UI text.
@@ -54,8 +56,11 @@ interface AnalyticsClient {
   track(name: string, properties: EventProperties): void;
 }
 
-const writeKey = import.meta.env.VITE_RUDDERSTACK_WRITE_KEY;
-const dataPlaneUrl = import.meta.env.VITE_RUDDERSTACK_DATA_PLANE_URL;
+const writeKey =
+  runtimeConfig()?.rudderstackWriteKey ?? import.meta.env.VITE_RUDDERSTACK_WRITE_KEY;
+const dataPlaneUrl =
+  runtimeConfig()?.rudderstackDataPlaneUrl ??
+  import.meta.env.VITE_RUDDERSTACK_DATA_PLANE_URL;
 const client: AnalyticsClient | null =
   writeKey && dataPlaneUrl ? new RudderAnalytics() : null;
 

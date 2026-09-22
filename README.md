@@ -124,6 +124,28 @@ This starts:
 
 No database, cache, proxy, worker, or queue is included by default.
 
+## Production Container
+
+The root `Dockerfile` builds the React frontend with `npm ci`, installs the
+locked backend runtime dependencies, and runs Uvicorn without a development
+server or source mount. The image also includes the Alembic migration files.
+It listens on port 8000 and serves the frontend, API, and `/health` from one
+process.
+
+```sh
+docker build -t portfolio-website:local .
+docker run --rm -p 8000:8000 \
+  -e DATABASE_URL=postgresql://user:password@database:5432/portfolio_website \
+  portfolio-website:local
+curl --fail http://localhost:8000/health
+```
+
+Set `DATABASE_URL` at runtime for the production database. Optional public
+browser analytics settings are `RUDDERSTACK_WRITE_KEY` and
+`RUDDERSTACK_DATA_PLANE_URL`; the frontend receives them at request time.
+The image contains no environment file or credentials. The existing Compose
+services remain for local development.
+
 ## Full Repository Validation
 
 From the repository root:
@@ -173,6 +195,18 @@ semantic-release follows the Python template conventions:
 The frontend package version starts at the same value for search-and-replace
 clarity, but the default release workflow is repository-level rather than
 separate frontend/backend release tracks.
+
+When semantic-release creates a new tag, the release workflow calls the
+centralized container publisher with that tag. It publishes
+`ghcr.io/spencerrwood/website-portfolio:vX.Y.Z` and
+`ghcr.io/spencerrwood/website-portfolio:sha-<full-commit-sha>` and exposes a
+digest-qualified version reference. The image name is explicit because this
+repository is named `portfolio-website` on GitHub.
+
+The publisher uses `GITHUB_TOKEN` with `contents: read` and `packages: write`.
+If an existing GHCR package denies this repository access, add
+`SpencerRWood/portfolio-website` under the `website-portfolio` package's
+**Settings → Manage Actions access** with **Write** permission.
 
 ## Copy And Rename
 
