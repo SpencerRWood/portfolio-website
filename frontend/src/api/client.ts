@@ -1,3 +1,5 @@
+import { runtimeConfig } from "../runtimeConfig";
+
 export interface HealthResponse {
   status: string;
 }
@@ -77,6 +79,10 @@ export interface SitePage {
 }
 
 function apiBaseUrl(): string {
+  const runtimeUrl = runtimeConfig()?.apiBaseUrl;
+  if (runtimeUrl !== undefined) {
+    return runtimeUrl.replace(/\/$/, "");
+  }
   const configuredUrl = import.meta.env.VITE_API_BASE_URL;
   if (configuredUrl !== undefined) {
     return configuredUrl.replace(/\/$/, "");

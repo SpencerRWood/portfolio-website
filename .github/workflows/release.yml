@@ -11,3 +11,14 @@ permissions:
 jobs:
   release:
     uses: SpencerRWood/workflows/.github/workflows/release.yml@v1
+
+  container:
+    needs: release
+    if: needs.release.outputs.released == 'true'
+    uses: SpencerRWood/workflows/.github/workflows/container-release.yml@v1.1.0
+    permissions:
+      contents: read
+      packages: write
+    with:
+      release_tag: ${{ needs.release.outputs.release_tag }}
+      image_name: website-portfolio
