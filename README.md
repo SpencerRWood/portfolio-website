@@ -213,7 +213,7 @@ After a new semantic release and successful GHCR publication, the shared
 `vX.Y.Z@sha256:...` reference in
 `SpencerRWood/infrastructure` as a PR against `main`. It uses the branch
 `chore/portfolio-website-vX.Y.Z` and commit/PR title
-`chore(deps): update website portfolio to vX.Y.Z`. The dev handoff waits up to
+`chore(deps): update portfolio-website to vX.Y.Z`. The dev handoff waits up to
 20 minutes for the `infrastructure-validation` commit status, which the
 centralized workflow publishes from its `validation / validation` result. It
 re-fetches the PR, verifies its unchanged head and exact one-line
