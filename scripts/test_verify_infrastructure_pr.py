@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import copy
+import subprocess
 import unittest
+from unittest.mock import patch
 
-from verify_infrastructure_pr import ensure_head, validate, validation_result
+from verify_infrastructure_pr import check_runs, ensure_head, validate, validation_result
 
 VERSION = "v1.2.3"
 DIGEST = "sha256:" + "a" * 64
@@ -105,6 +107,12 @@ class ValidationGateTests(unittest.TestCase):
 
     def test_other_sha_does_not_count(self) -> None:
         self.assertEqual(validation_result([self.check], "c" * 40), "pending")
+
+    def test_missing_check_read_permission_has_actionable_error(self) -> None:
+        error = subprocess.CalledProcessError(1, ["gh", "api"], stderr="HTTP 403")
+        with patch("verify_infrastructure_pr.api", side_effect=error):
+            with self.assertRaisesRegex(RuntimeError, "Checks: read.*HTTP 403"):
+                check_runs(self.sha)
 
 
 if __name__ == "__main__":

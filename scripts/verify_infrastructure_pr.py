@@ -146,7 +146,15 @@ def pull_and_files(number: str) -> tuple[dict, list[dict]]:
 
 
 def check_runs(head_sha: str) -> list[dict]:
-    response = api(f"repos/{REPOSITORY}/commits/{head_sha}/check-runs?per_page=100")
+    try:
+        response = api(f"repos/{REPOSITORY}/commits/{head_sha}/check-runs?per_page=100")
+    except subprocess.CalledProcessError as error:
+        detail = (error.stderr or "").strip()
+        raise RuntimeError(
+            f"Cannot read infrastructure {CHECK_NAME} check runs. "
+            "INFRASTRUCTURE_PR_TOKEN needs Checks: read on "
+            f"{REPOSITORY}. GitHub response: {detail}"
+        ) from error
     if not isinstance(response, dict) or not isinstance(
         response.get("check_runs"), list
     ):
