@@ -18,7 +18,7 @@ from update_infrastructure_pin import (
 
 REPOSITORY = "SpencerRWood/infrastructure"
 PIN_FILE = "environments/dev.yml"
-CHECK_NAME = "validation / validation"
+STATUS_CONTEXT = "infrastructure-validation"
 CHECK_TIMEOUT_SECONDS = 20 * 60
 CHECK_POLL_SECONDS = 15
 
@@ -88,23 +88,26 @@ def validate(
     return sha
 
 
-def validation_result(check_runs: list[dict], head_sha: str) -> str:
-    """Return pending/success; reject any completed non-success result."""
+def validation_result(statuses: list[dict], head_sha: str) -> str:
+    """Return pending/success for the trusted status on this exact PR head."""
     matching = [
-        check
-        for check in check_runs
-        if check.get("name") == CHECK_NAME
-        and check.get("head_sha") == head_sha
-        and (check.get("app") or {}).get("slug") == "github-actions"
+        status
+        for status in statuses
+        if status.get("context") == STATUS_CONTEXT
+        and (status.get("creator") or {}).get("login") == "github-actions[bot]"
+        and (status.get("url") or "").endswith(f"/statuses/{head_sha}")
+        and (status.get("target_url") or "").startswith(
+            f"https://github.com/{REPOSITORY}/actions/runs/"
+        )
     ]
     if not matching:
         return "pending"
-    latest = max(matching, key=lambda check: check.get("id", 0))
-    if latest.get("status") != "completed":
+    latest = max(matching, key=lambda status: status.get("id", 0))
+    state = latest.get("state")
+    if state == "pending":
         return "pending"
-    conclusion = latest.get("conclusion")
-    if conclusion != "success":
-        raise ValueError(f"infrastructure {CHECK_NAME} finished with {conclusion!r}")
+    if state != "success":
+        raise ValueError(f"infrastructure {STATUS_CONTEXT} finished with {state!r}")
     return "success"
 
 
@@ -145,21 +148,19 @@ def pull_and_files(number: str) -> tuple[dict, list[dict]]:
     return pull, files
 
 
-def check_runs(head_sha: str) -> list[dict]:
+def commit_statuses(head_sha: str) -> list[dict]:
     try:
-        response = api(f"repos/{REPOSITORY}/commits/{head_sha}/check-runs?per_page=100")
+        response = api(f"repos/{REPOSITORY}/commits/{head_sha}/statuses?per_page=100")
     except subprocess.CalledProcessError as error:
         detail = (error.stderr or "").strip()
         raise RuntimeError(
-            f"Cannot read infrastructure {CHECK_NAME} check runs. "
-            "INFRASTRUCTURE_PR_TOKEN needs Checks: read on "
+            f"Cannot read infrastructure {STATUS_CONTEXT} commit status. "
+            "INFRASTRUCTURE_PR_TOKEN needs Commit statuses: read on "
             f"{REPOSITORY}. GitHub response: {detail}"
         ) from error
-    if not isinstance(response, dict) or not isinstance(
-        response.get("check_runs"), list
-    ):
-        raise TypeError("invalid infrastructure checks API response")
-    return response["check_runs"]
+    if not isinstance(response, list):
+        raise TypeError("invalid infrastructure commit statuses API response")
+    return response
 
 
 def main() -> None:
@@ -181,21 +182,21 @@ def main() -> None:
     while True:
         current_pull, _ = pull_and_files(number)
         ensure_head(current_pull, head_sha)
-        result = validation_result(check_runs(head_sha), head_sha)
+        result = validation_result(commit_statuses(head_sha), head_sha)
         if result == "success":
             break
         if time.monotonic() >= deadline:
-            raise TimeoutError(f"timed out waiting for infrastructure {CHECK_NAME}")
-        print(f"Infrastructure {CHECK_NAME}: pending", flush=True)
+            raise TimeoutError(f"timed out waiting for infrastructure {STATUS_CONTEXT}")
+        print(f"Infrastructure {STATUS_CONTEXT}: pending", flush=True)
         time.sleep(CHECK_POLL_SECONDS)
-    print(f"Infrastructure {CHECK_NAME}: success", flush=True)
+    print(f"Infrastructure {STATUS_CONTEXT}: success", flush=True)
 
     pull, files = pull_and_files(number)
     ensure_head(pull, head_sha)
     verified_sha = validate(pull, files, version, digest, branch)
     if verified_sha != head_sha:
         raise ValueError("promotion PR head SHA changed after validation passed")
-    if validation_result(check_runs(head_sha), head_sha) != "success":
+    if validation_result(commit_statuses(head_sha), head_sha) != "success":
         raise ValueError("infrastructure validation no longer succeeds")
     if check_main_order(version, digest):
         print(
