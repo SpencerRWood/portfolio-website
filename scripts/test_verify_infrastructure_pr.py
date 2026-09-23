@@ -5,7 +5,7 @@ from __future__ import annotations
 import copy
 import unittest
 
-from verify_infrastructure_pr import validate
+from verify_infrastructure_pr import ensure_head, validate, validation_result
 
 VERSION = "v1.2.3"
 DIGEST = "sha256:" + "a" * 64
@@ -23,15 +23,17 @@ class AutoMergeSafetyTests(unittest.TestCase):
             "state": "open",
             "changed_files": 1,
         }
-        self.files = [{
-            "filename": "environments/dev.yml",
-            "status": "modified",
-            "additions": 1,
-            "deletions": 1,
-            "patch": "@@ -15 +15 @@\n-portfolio_website_image_ref: old\n+" + LINE,
-        }]
+        self.files = [
+            {
+                "filename": "environments/dev.yml",
+                "status": "modified",
+                "additions": 1,
+                "deletions": 1,
+                "patch": "@@ -15 +15 @@\n-portfolio_website_image_ref: old\n+" + LINE,
+            }
+        ]
 
-    def verify(self) -> tuple[str, bool]:
+    def verify(self) -> str:
         return validate(self.pull, self.files, VERSION, DIGEST, BRANCH)
 
     def test_exact_pr_is_eligible(self) -> None:
@@ -57,6 +59,52 @@ class AutoMergeSafetyTests(unittest.TestCase):
     def test_wrong_branch_fails(self) -> None:
         with self.assertRaisesRegex(ValueError, "unexpected automation branch"):
             validate(self.pull, self.files, VERSION, DIGEST, "chore/other")
+
+    def test_wrong_digest_blocks_merge(self) -> None:
+        with self.assertRaisesRegex(ValueError, "exact requested"):
+            validate(self.pull, self.files, VERSION, "sha256:" + "c" * 64, BRANCH)
+
+    def test_wrong_version_blocks_merge(self) -> None:
+        with self.assertRaisesRegex(ValueError, "unexpected automation branch"):
+            validate(self.pull, self.files, "v1.2.4", DIGEST, BRANCH)
+
+    def test_changed_head_after_validation_blocks_merge(self) -> None:
+        self.pull["head"]["sha"] = "c" * 40
+        with self.assertRaisesRegex(ValueError, "head SHA changed"):
+            ensure_head(self.pull, "b" * 40)
+
+
+class ValidationGateTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.sha = "b" * 40
+        self.check = {
+            "id": 1,
+            "name": "validation / validation",
+            "head_sha": self.sha,
+            "app": {"slug": "github-actions"},
+            "status": "completed",
+            "conclusion": "success",
+        }
+
+    def test_successful_validation_allows_merge(self) -> None:
+        self.assertEqual(validation_result([self.check], self.sha), "success")
+
+    def test_failed_validation_blocks_merge(self) -> None:
+        self.check["conclusion"] = "failure"
+        with self.assertRaisesRegex(ValueError, "failure"):
+            validation_result([self.check], self.sha)
+
+    def test_cancelled_validation_blocks_merge(self) -> None:
+        self.check["conclusion"] = "cancelled"
+        with self.assertRaisesRegex(ValueError, "cancelled"):
+            validation_result([self.check], self.sha)
+
+    def test_latest_rerun_must_succeed(self) -> None:
+        rerun = {**self.check, "id": 2, "status": "in_progress", "conclusion": None}
+        self.assertEqual(validation_result([self.check, rerun], self.sha), "pending")
+
+    def test_other_sha_does_not_count(self) -> None:
+        self.assertEqual(validation_result([self.check], "c" * 40), "pending")
 
 
 if __name__ == "__main__":
