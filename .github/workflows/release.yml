@@ -37,10 +37,18 @@ jobs:
       group: portfolio-website-infrastructure-dev
       cancel-in-progress: false
     steps:
-      - name: Require cross-repository credential
+      - name: Verify infrastructure promotion credential
         env:
-          INFRASTRUCTURE_PR_TOKEN: ${{ secrets.INFRASTRUCTURE_PR_TOKEN }}
-        run: test -n "$INFRASTRUCTURE_PR_TOKEN"
+          GH_TOKEN: ${{ secrets.INFRASTRUCTURE_PR_TOKEN }}
+        run: |
+          if [[ -z "$GH_TOKEN" ]]; then
+            echo 'INFRASTRUCTURE_PR_TOKEN is not configured' >&2
+            exit 1
+          fi
+          if ! gh api 'repos/SpencerRWood/infrastructure/contents/environments/dev.yml?ref=main' --silent; then
+            echo 'INFRASTRUCTURE_PR_TOKEN cannot read the infrastructure dev pin; check token validity, repository scope, and Contents: read in portfolio-website Actions secrets' >&2
+            exit 1
+          fi
 
       - name: Check out application release
         uses: actions/checkout@v6
