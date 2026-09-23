@@ -41,7 +41,5 @@ jobs:
       version_image: ${{ needs.container.outputs.version_image }}
       image_digest: ${{ needs.container.outputs.image_digest }}
       version_image_digest: ${{ needs.container.outputs.version_image_digest }}
-      promotion_branch_prefix: chore/portfolio-website-
-      pr_title_template: 'chore(deps): update website portfolio to {version}'
     secrets:
       infrastructure_token: ${{ secrets.INFRASTRUCTURE_PR_TOKEN }}
