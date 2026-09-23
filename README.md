@@ -198,15 +198,40 @@ separate frontend/backend release tracks.
 
 When semantic-release creates a new tag, the release workflow calls the
 centralized container publisher with that tag. It publishes
-`ghcr.io/spencerrwood/website-portfolio:vX.Y.Z` and
-`ghcr.io/spencerrwood/website-portfolio:sha-<full-commit-sha>` and exposes a
-digest-qualified version reference. The image name is explicit because this
-repository is named `portfolio-website` on GitHub.
+`ghcr.io/spencerrwood/portfolio-website:vX.Y.Z` and
+`ghcr.io/spencerrwood/portfolio-website:sha-<full-commit-sha>` and exposes a
+digest-qualified version reference. Older dev releases remain pinned to the
+legacy `website-portfolio` package until infrastructure promotes a new image.
 
 The publisher uses `GITHUB_TOKEN` with `contents: read` and `packages: write`.
 If an existing GHCR package denies this repository access, add
-`SpencerRWood/portfolio-website` under the `website-portfolio` package's
+`SpencerRWood/portfolio-website` under the `portfolio-website` package's
 **Settings → Manage Actions access** with **Write** permission.
+
+After a new semantic release and successful GHCR publication, the release
+workflow proposes the exact `vX.Y.Z@sha256:...` reference in
+`SpencerRWood/infrastructure` as a PR against `main`. It uses the branch
+`chore/portfolio-website-vX.Y.Z` and commit/PR title
+`chore(deps): update website portfolio to vX.Y.Z`. It verifies that the PR
+targets `infrastructure/main` and contains only the one-line dev pin change.
+Infrastructure validation and review decide whether to merge. A rerun
+does not create a second PR or commit, and an existing exact pin needs no
+update. An existing version branch with different content needs manual review.
+
+Configure the `INFRASTRUCTURE_PR_TOKEN` repository secret in
+`SpencerRWood/portfolio-website` before the next release. Use a fine-grained
+GitHub PAT restricted to `SpencerRWood/infrastructure` with **Contents:
+read/write** and **Pull requests: read/write**. The normal `GITHUB_TOKEN`
+publishes this repository's image; it cannot create a branch and PR in the
+private infrastructure repository. Rotate the secret through GitHub settings.
+
+The dev handoff is: semantic release → GHCR publish → infrastructure PR →
+validation and review → infrastructure patch release →
+existing Ansible deployment and Beelink readiness checks. This repository
+does not deploy directly. A promotion error is reported by the handoff job and
+does not invalidate the already published artifact. Production is outside this handoff. If this pattern
+is needed by more applications, the handoff can later move to the centralized
+workflows repository.
 
 ## Copy And Rename
 
