@@ -24,14 +24,13 @@ jobs:
       image_name: portfolio-website
 
   infrastructure-pr:
-    name: Propose published image to infrastructure
+    name: Promote published image to infrastructure dev
     needs: [release, container]
     if: >-
       ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' &&
-      github.run_attempt == 1 && needs.release.outputs.released == 'true' &&
+      needs.release.outputs.released == 'true' &&
       needs.container.result == 'success' }}
     runs-on: ubuntu-latest
-    continue-on-error: true
     permissions:
       contents: read
     concurrency:

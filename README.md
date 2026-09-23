@@ -219,8 +219,9 @@ re-fetches the PR, verifies its unchanged head and exact one-line
 newer application version, then squash-merges only that PR. The
 `chore(deps)` squash commit causes an infrastructure patch release and its
 existing Beelink dev deployment. Validation failure, cancellation, timeout,
-or a changed PR leaves it open and reports a promotion failure; the published
-application release and image remain valid. Production promotion remains manual.
+or a changed PR leaves it open and fails the promotion job; the published
+application release and image remain valid. The failed job can be rerun after
+the cause is fixed. Production promotion remains manual.
 
 The dev promotion job is serialized across application versions. An exact
 image pin is a no-op, an existing open promotion PR is reused, and a stale
