@@ -2,6 +2,25 @@
 
 <!-- version list -->
 
+## v0.8.0 (2026-09-23)
+
+### Bug Fixes
+
+- **ci**: Fail and retry dev promotion stage
+  ([#10](https://github.com/SpencerRWood/portfolio-website/pull/10),
+  [`365865f`](https://github.com/SpencerRWood/portfolio-website/commit/365865f958e38343710e82c2c251d91846efb9bd))
+
+### Features
+
+- **ci**: Auto-promote validated dev image pins
+  ([#10](https://github.com/SpencerRWood/portfolio-website/pull/10),
+  [`365865f`](https://github.com/SpencerRWood/portfolio-website/commit/365865f958e38343710e82c2c251d91846efb9bd))
+
+- **ci**: Automatically promote validated dev images
+  ([#10](https://github.com/SpencerRWood/portfolio-website/pull/10),
+  [`365865f`](https://github.com/SpencerRWood/portfolio-website/commit/365865f958e38343710e82c2c251d91846efb9bd))
+
+
 ## v0.7.0 (2026-09-23)
 
 ### Bug Fixes
