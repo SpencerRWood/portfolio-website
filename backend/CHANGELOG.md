@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v0.8.3 (2026-09-23)
+
+### Bug Fixes
+
+- **ci**: Centralize container promotion naming
+  ([#14](https://github.com/SpencerRWood/portfolio-website/pull/14),
+  [`48c39aa`](https://github.com/SpencerRWood/portfolio-website/commit/48c39aa067641df8d2623c5b150d3512b8c46a21))
+
+
 ## v0.8.2 (2026-09-23)
 
 ### Bug Fixes
