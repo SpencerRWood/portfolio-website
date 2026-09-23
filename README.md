@@ -208,6 +208,28 @@ If an existing GHCR package denies this repository access, add
 `SpencerRWood/portfolio-website` under the `website-portfolio` package's
 **Settings → Manage Actions access** with **Write** permission.
 
+After a new semantic release and successful GHCR publication, the release
+workflow proposes the exact `vX.Y.Z@sha256:...` reference in
+`SpencerRWood/infrastructure` as a PR against `main`. It uses the branch
+`chore/website-portfolio-vX.Y.Z` and commit/PR title
+`chore(deps): update website portfolio to vX.Y.Z`. A rerun does not create a
+second PR, and an existing exact pin needs no update. An existing version
+branch with different content needs manual review.
+
+Configure the `INFRASTRUCTURE_PR_TOKEN` repository secret in
+`SpencerRWood/portfolio-website` before the next release. Use a fine-grained
+GitHub PAT restricted to `SpencerRWood/infrastructure` with **Contents:
+read/write** and **Pull requests: read/write**. The normal `GITHUB_TOKEN`
+publishes this repository's image; it cannot create a branch and PR in the
+private infrastructure repository. Rotate the secret through GitHub settings.
+
+The handoff is: semantic release → GHCR publish → infrastructure PR → reviewed
+infrastructure merge → existing infrastructure release and Beelink deployment.
+This repository does not deploy directly. Infrastructure PR checks and its
+release pipeline remain responsible for validation and deployment. If this
+pattern is needed by more applications, the handoff can later move to the
+centralized workflows repository.
+
 ## Copy And Rename
 
 After copying this template, replace these names everywhere:
