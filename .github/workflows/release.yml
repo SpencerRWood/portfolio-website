@@ -35,7 +35,7 @@ jobs:
     permissions:
       contents: read
     concurrency:
-      group: portfolio-website-infrastructure-${{ needs.release.outputs.release_tag }}
+      group: portfolio-website-infrastructure-dev
       cancel-in-progress: false
     steps:
       - name: Require cross-repository credential
@@ -77,6 +77,7 @@ jobs:
             --reference "$VERSION_IMAGE_DIGEST" >> "$GITHUB_OUTPUT"
 
       - name: Create or reuse infrastructure PR
+        id: promotion_pr
         if: steps.pin.outputs.changed == 'true'
         working-directory: infrastructure
         env:
@@ -135,5 +136,16 @@ jobs:
             pr_number="$(gh pr view "$branch" --repo SpencerRWood/infrastructure --json number --jq .number)"
           fi
 
-          python3 ../application/scripts/verify_infrastructure_pr.py "$pr_number" "$VERSION" "$IMAGE_DIGEST" "$branch"
-          echo "Infrastructure PR #$pr_number is ready for validation and review"
+          echo "number=$pr_number" >> "$GITHUB_OUTPUT"
+          echo "Infrastructure PR #$pr_number is ready for validation"
+
+      - name: Wait for validation and merge exact dev promotion
+        if: steps.pin.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.INFRASTRUCTURE_PR_TOKEN }}
+          VERSION: ${{ needs.release.outputs.release_tag }}
+          IMAGE_DIGEST: ${{ needs.container.outputs.image_digest }}
+          PR_NUMBER: ${{ steps.promotion_pr.outputs.number }}
+        run: |
+          python3 application/scripts/verify_infrastructure_pr.py \
+            "$PR_NUMBER" "$VERSION" "$IMAGE_DIGEST" "chore/portfolio-website-$VERSION"

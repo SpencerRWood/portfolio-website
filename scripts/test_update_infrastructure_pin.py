@@ -38,13 +38,28 @@ class PinUpdateTests(unittest.TestCase):
 
     def test_updates_only_image_pin(self) -> None:
         self.assertTrue(self.update())
-        self.assertEqual(self.path.read_text(encoding="utf-8"), ORIGINAL.replace(
-            f"{IMAGE_REPOSITORY}:v0.6.0@sha256:{'b' * 64}", REFERENCE
-        ))
+        self.assertEqual(
+            self.path.read_text(encoding="utf-8"),
+            ORIGINAL.replace(f"{IMAGE_REPOSITORY}:v0.6.0@sha256:{'b' * 64}", REFERENCE),
+        )
 
-    def test_exact_pin_is_noop(self) -> None:
+    def test_already_promoted_image_is_idempotent(self) -> None:
         self.update()
         self.assertFalse(self.update())
+
+    def test_rerun_skips_duplicate_promotion_pr(self) -> None:
+        self.assertTrue(self.update())
+        self.assertFalse(self.update())  # Workflow only creates a PR when changed=true.
+
+    def test_older_release_cannot_replace_newer_pin(self) -> None:
+        self.update()
+        with self.assertRaisesRegex(ValueError, "already has newer application"):
+            self.update(version="v1.2.2")
+
+    def test_same_version_different_digest_is_rejected(self) -> None:
+        self.update()
+        with self.assertRaisesRegex(ValueError, "different artifact"):
+            self.update(digest="sha256:" + "c" * 64)
 
     def test_rejects_invalid_version(self) -> None:
         with self.assertRaisesRegex(ValueError, "invalid stable release version"):
@@ -56,17 +71,23 @@ class PinUpdateTests(unittest.TestCase):
 
     def test_missing_key_fails(self) -> None:
         self.path.write_text("services:\n  postgres: true\n", encoding="utf-8")
-        with self.assertRaisesRegex(ValueError, "expected exactly one portfolio_website_image_ref"):
+        with self.assertRaisesRegex(
+            ValueError, "expected exactly one portfolio_website_image_ref"
+        ):
             self.update()
 
     def test_duplicate_key_fails(self) -> None:
-        self.path.write_text(ORIGINAL + "portfolio_website_image_ref: unexpected\n", encoding="utf-8")
+        self.path.write_text(
+            ORIGINAL + "portfolio_website_image_ref: unexpected\n", encoding="utf-8"
+        )
         with self.assertRaisesRegex(ValueError, "found 2"):
             self.update()
 
     def test_rejects_other_repository(self) -> None:
         with self.assertRaisesRegex(ValueError, "unexpected image repository"):
-            update_pin(self.path, VERSION, DIGEST, "ghcr.io/other/image", "other", "other")
+            update_pin(
+                self.path, VERSION, DIGEST, "ghcr.io/other/image", "other", "other"
+            )
 
     def test_publisher_outputs_must_agree(self) -> None:
         with self.assertRaisesRegex(ValueError, "publisher outputs disagree"):

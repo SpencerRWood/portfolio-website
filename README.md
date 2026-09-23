@@ -212,26 +212,34 @@ After a new semantic release and successful GHCR publication, the release
 workflow proposes the exact `vX.Y.Z@sha256:...` reference in
 `SpencerRWood/infrastructure` as a PR against `main`. It uses the branch
 `chore/portfolio-website-vX.Y.Z` and commit/PR title
-`chore(deps): update website portfolio to vX.Y.Z`. It verifies that the PR
-targets `infrastructure/main` and contains only the one-line dev pin change.
-Infrastructure validation and review decide whether to merge. A rerun
-does not create a second PR or commit, and an existing exact pin needs no
-update. An existing version branch with different content needs manual review.
+`chore(deps): update website portfolio to vX.Y.Z`. The dev handoff waits up to
+20 minutes for the infrastructure PR's `validation / validation` check. It
+re-fetches the PR, verifies its unchanged head and exact one-line
+`environments/dev.yml` image pin, checks that dev is not already running a
+newer application version, then squash-merges only that PR. The
+`chore(deps)` squash commit causes an infrastructure patch release and its
+existing Beelink dev deployment. Validation failure, cancellation, timeout,
+or a changed PR leaves it open and reports a promotion failure; the published
+application release and image remain valid. Production promotion remains manual.
+
+The dev promotion job is serialized across application versions. An exact
+image pin is a no-op, an existing open promotion PR is reused, and a stale
+version branch with different content requires manual review. Release workflow
+reruns do not create another promotion; a newer dev pin cannot be downgraded
+by an older release.
 
 Configure the `INFRASTRUCTURE_PR_TOKEN` repository secret in
 `SpencerRWood/portfolio-website` before the next release. Use a fine-grained
 GitHub PAT restricted to `SpencerRWood/infrastructure` with **Contents:
-read/write** and **Pull requests: read/write**. The normal `GITHUB_TOKEN`
+read/write**, **Pull requests: read/write**, and **Checks: read** so the
+promotion can inspect the exact validation check. The normal `GITHUB_TOKEN`
 publishes this repository's image; it cannot create a branch and PR in the
 private infrastructure repository. Rotate the secret through GitHub settings.
 
 The dev handoff is: semantic release → GHCR publish → infrastructure PR →
-validation and review → infrastructure patch release →
-existing Ansible deployment and Beelink readiness checks. This repository
-does not deploy directly. A promotion error is reported by the handoff job and
-does not invalidate the already published artifact. Production is outside this handoff. If this pattern
-is needed by more applications, the handoff can later move to the centralized
-workflows repository.
+central validation → exact-diff verification → squash merge → infrastructure
+patch release → existing Ansible deployment and Beelink readiness checks.
+This repository does not deploy directly. Production is outside this handoff.
 
 ## Copy And Rename
 
