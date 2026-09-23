@@ -212,23 +212,38 @@ After a new semantic release and successful GHCR publication, the release
 workflow proposes the exact `vX.Y.Z@sha256:...` reference in
 `SpencerRWood/infrastructure` as a PR against `main`. It uses the branch
 `chore/website-portfolio-vX.Y.Z` and commit/PR title
-`chore(deps): update website portfolio to vX.Y.Z`. A rerun does not create a
-second PR, and an existing exact pin needs no update. An existing version
-branch with different content needs manual review.
+`chore(deps): update website portfolio to vX.Y.Z`. After verifying that the PR
+targets `infrastructure/main`, contains only the one-line dev pin replacement,
+and that `main` requires the `validation` check, it requests GitHub native
+auto-merge with a squash commit using the same `chore(deps)` subject. GitHub
+merges only when its required checks and other repository rules pass. A rerun
+does not create a second PR or commit, and an existing exact pin needs no
+update. An existing version branch with different content needs manual review.
 
 Configure the `INFRASTRUCTURE_PR_TOKEN` repository secret in
 `SpencerRWood/portfolio-website` before the next release. Use a fine-grained
 GitHub PAT restricted to `SpencerRWood/infrastructure` with **Contents:
-read/write** and **Pull requests: read/write**. The normal `GITHUB_TOKEN`
+read/write** and **Pull requests: read/write**; the latter permits requesting
+auto-merge. The normal `GITHUB_TOKEN`
 publishes this repository's image; it cannot create a branch and PR in the
 private infrastructure repository. Rotate the secret through GitHub settings.
 
-The handoff is: semantic release → GHCR publish → infrastructure PR → reviewed
-infrastructure merge → existing infrastructure release and Beelink deployment.
-This repository does not deploy directly. Infrastructure PR checks and its
-release pipeline remain responsible for validation and deployment. If this
-pattern is needed by more applications, the handoff can later move to the
-centralized workflows repository.
+Native auto-merge requires infrastructure repository **Settings → General → Pull
+Requests → Allow auto-merge**, and `main` branch protection must require the
+`validation` check from the existing `Validate` PR workflow. Keep squash merge
+enabled. On 2026-09-23 the private infrastructure repository reported
+`allow_auto_merge: false`, and GitHub returned HTTP 403 for branch protection
+with “Upgrade to GitHub Pro or make this repository public to enable this
+feature.” Its current plan must support private repository branch protection
+and auto-merge before this handoff can run unattended. The workflow fails
+clearly instead of bypassing required checks.
+
+The dev handoff is: semantic release → GHCR publish → infrastructure PR →
+required validation → GitHub auto-merge → infrastructure patch release →
+existing Ansible deployment and Beelink readiness checks. This repository
+does not deploy directly. Production is outside this handoff. If this pattern
+is needed by more applications, the handoff can later move to the centralized
+workflows repository.
 
 ## Copy And Rename
 

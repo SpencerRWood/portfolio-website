@@ -104,24 +104,22 @@ jobs:
               exit 1
             fi
             echo "Reusing infrastructure PR #$existing_pr for $VERSION"
-            exit 0
+            pr_number="$existing_pr"
           else
             status=$?
             if [[ "$status" -ne 2 ]]; then
               echo "Could not check the infrastructure version branch" >&2
               exit "$status"
             fi
-          fi
+            git switch -c "$branch"
+            git add -- environments/dev.yml
+            git diff --cached --check
+            git diff --cached --name-only | grep -Fx 'environments/dev.yml'
+            git commit -m "$title"
+            git push origin "HEAD:refs/heads/$branch"
 
-          git switch -c "$branch"
-          git add -- environments/dev.yml
-          git diff --cached --check
-          git diff --cached --name-only | grep -Fx 'environments/dev.yml'
-          git commit -m "$title"
-          git push origin "HEAD:refs/heads/$branch"
-
-          release_sha="$(git -C ../application rev-parse HEAD)"
-          cat > "$RUNNER_TEMP/infrastructure-pr-body.md" <<EOF
+            release_sha="$(git -C ../application rev-parse HEAD)"
+            cat > "$RUNNER_TEMP/infrastructure-pr-body.md" <<EOF
           Application release: $VERSION
           Application release commit: $release_sha
           GHCR semantic image: $VERSION_IMAGE
@@ -132,4 +130,14 @@ jobs:
 
           The image was successfully published before this PR was created. Merging this PR invokes the existing infrastructure release and deployment pipeline.
           EOF
-          gh pr create --repo SpencerRWood/infrastructure --base main --head "$branch" --title "$title" --body-file "$RUNNER_TEMP/infrastructure-pr-body.md"
+            gh pr create --repo SpencerRWood/infrastructure --base main --head "$branch" --title "$title" --body-file "$RUNNER_TEMP/infrastructure-pr-body.md"
+            pr_number="$(gh pr view "$branch" --repo SpencerRWood/infrastructure --json number --jq .number)"
+          fi
+
+          verification="$(python3 ../application/scripts/verify_infrastructure_pr.py "$pr_number" "$VERSION" "$IMAGE_DIGEST" "$branch")"
+          read -r pr_head_sha auto_merge_enabled <<< "$verification"
+          if [[ "$auto_merge_enabled" == 'false' ]]; then
+            gh pr merge "$pr_number" --repo SpencerRWood/infrastructure --auto --squash --subject "$title" --match-head-commit "$pr_head_sha"
+          else
+            echo "Auto-merge already enabled for infrastructure PR #$pr_number"
+          fi
