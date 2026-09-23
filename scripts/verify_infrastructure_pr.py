@@ -14,7 +14,7 @@ PIN_FILE = "environments/dev.yml"
 
 
 def validate(
-    repository: dict, protection: dict, pull: dict, files: list[dict], version: str, digest: str, branch: str
+    repository: dict, main_branch: dict, pull: dict, files: list[dict], version: str, digest: str, branch: str
 ) -> tuple[str, bool]:
     """Return the reviewed head SHA and whether auto-merge is already enabled."""
     if not VERSION_PATTERN.fullmatch(version) or not DIGEST_PATTERN.fullmatch(digest):
@@ -23,7 +23,9 @@ def validate(
         raise ValueError("unexpected automation branch")
     if not repository.get("allow_auto_merge") or not repository.get("allow_squash_merge"):
         raise ValueError("infrastructure must allow native auto-merge and squash merge")
-    checks = protection.get("required_status_checks") or {}
+    if not main_branch.get("protected"):
+        raise ValueError("infrastructure/main must be protected before auto-merge")
+    checks = (main_branch.get("protection") or {}).get("required_status_checks") or {}
     contexts = set(checks.get("contexts") or [])
     contexts.update(check.get("context") for check in checks.get("checks") or [])
     if "validation" not in contexts:
@@ -70,15 +72,9 @@ def main() -> None:
     number, version, digest, branch = sys.argv[1:]
     if not number.isdecimal():
         raise ValueError("invalid PR number")
-    try:
-        protection = api(f"repos/{REPOSITORY}/branches/main/protection")
-    except subprocess.CalledProcessError as error:
-        raise ValueError(
-            "Cannot read infrastructure/main branch protection; native auto-merge requires a plan and a required validation check"
-        ) from error
     sha, enabled = validate(
         api(f"repos/{REPOSITORY}"),
-        protection,
+        api(f"repos/{REPOSITORY}/branches/main"),
         api(f"repos/{REPOSITORY}/pulls/{number}"),
         api(f"repos/{REPOSITORY}/pulls/{number}/files?per_page=100"),
         version,

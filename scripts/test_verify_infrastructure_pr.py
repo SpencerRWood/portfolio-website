@@ -17,7 +17,7 @@ LINE = f"website_portfolio_image_ref: ghcr.io/spencerrwood/website-portfolio:{VE
 class AutoMergeSafetyTests(unittest.TestCase):
     def setUp(self) -> None:
         self.repository = {"allow_auto_merge": True, "allow_squash_merge": True}
-        self.protection = {"required_status_checks": {"contexts": ["validation"]}}
+        self.main_branch = {"protected": True, "protection": {"required_status_checks": {"contexts": ["validation"]}}}
         self.pull = {
             "base": {"ref": "main", "repo": {"full_name": REPOSITORY}},
             "head": {"ref": BRANCH, "repo": {"full_name": REPOSITORY}, "sha": "b" * 40},
@@ -35,14 +35,19 @@ class AutoMergeSafetyTests(unittest.TestCase):
         }]
 
     def verify(self) -> tuple[str, bool]:
-        return validate(self.repository, self.protection, self.pull, self.files, VERSION, DIGEST, BRANCH)
+        return validate(self.repository, self.main_branch, self.pull, self.files, VERSION, DIGEST, BRANCH)
 
     def test_exact_pr_is_eligible(self) -> None:
         self.assertEqual(self.verify(), ("b" * 40, False))
 
     def test_missing_required_check_fails(self) -> None:
-        self.protection["required_status_checks"] = {"contexts": []}
+        self.main_branch["protection"]["required_status_checks"] = {"contexts": []}
         with self.assertRaisesRegex(ValueError, "require the validation check"):
+            self.verify()
+
+    def test_unprotected_main_fails(self) -> None:
+        self.main_branch["protected"] = False
+        with self.assertRaisesRegex(ValueError, "must be protected"):
             self.verify()
 
     def test_unrelated_file_fails(self) -> None:
