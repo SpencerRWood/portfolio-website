@@ -209,7 +209,7 @@ If an existing GHCR package denies this repository access, add
 **Settings → Manage Actions access** with **Write** permission.
 
 After a new semantic release and successful GHCR publication, the shared
-`promote-container-to-dev.yml@v1` workflow proposes the exact
+`promote-container-to-dev.yml@v2` workflow proposes the exact
 `vX.Y.Z@sha256:...` reference in
 `SpencerRWood/infrastructure` as a PR against `main`. It uses the branch
 `chore/portfolio-website-vX.Y.Z` and commit/PR title
