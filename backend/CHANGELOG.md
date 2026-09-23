@@ -2,6 +2,17 @@
 
 <!-- version list -->
 
+## v0.8.1 (2026-09-23)
+
+### Bug Fixes
+
+- **ci**: Explain missing infrastructure checks permission
+  ([`39aed3d`](https://github.com/SpencerRWood/portfolio-website/commit/39aed3d3cb0b22a4edf78c1290415915211ebb78))
+
+- **ci**: Gate dev promotion on infrastructure commit status
+  ([`39aed3d`](https://github.com/SpencerRWood/portfolio-website/commit/39aed3d3cb0b22a4edf78c1290415915211ebb78))
+
+
 ## v0.8.0 (2026-09-23)
 
 ### Bug Fixes
