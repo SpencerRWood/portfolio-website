@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v0.8.2 (2026-09-23)
+
+### Bug Fixes
+
+- **ci**: Consume shared container dev promotion workflow
+  ([#13](https://github.com/SpencerRWood/portfolio-website/pull/13),
+  [`a144ae5`](https://github.com/SpencerRWood/portfolio-website/commit/a144ae510f87fee5176b6ffd943296b86af56746))
+
+
 ## v0.8.1 (2026-09-23)
 
 ### Bug Fixes
