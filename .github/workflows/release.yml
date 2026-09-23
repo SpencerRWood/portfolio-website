@@ -23,128 +23,25 @@ jobs:
       release_tag: ${{ needs.release.outputs.release_tag }}
       image_name: portfolio-website
 
-  infrastructure-pr:
-    name: Promote published image to infrastructure dev
+  promotion:
     needs: [release, container]
     if: >-
       ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' &&
-      needs.release.outputs.released == 'true' &&
-      needs.container.result == 'success' }}
-    runs-on: ubuntu-latest
+      needs.release.outputs.released == 'true' && needs.container.result == 'success' }}
+    uses: SpencerRWood/workflows/.github/workflows/promote-container-to-dev.yml@v1
     permissions:
       contents: read
-    concurrency:
-      group: portfolio-website-infrastructure-dev
-      cancel-in-progress: false
-    steps:
-      - name: Require cross-repository credential
-        env:
-          INFRASTRUCTURE_PR_TOKEN: ${{ secrets.INFRASTRUCTURE_PR_TOKEN }}
-        run: test -n "$INFRASTRUCTURE_PR_TOKEN"
-
-      - name: Check out application release
-        uses: actions/checkout@v6
-        with:
-          ref: ${{ needs.release.outputs.release_tag }}
-          path: application
-          persist-credentials: false
-
-      - name: Check out current infrastructure main
-        uses: actions/checkout@v6
-        with:
-          repository: SpencerRWood/infrastructure
-          ref: main
-          fetch-depth: 0
-          path: infrastructure
-          token: ${{ secrets.INFRASTRUCTURE_PR_TOKEN }}
-
-      - name: Validate published outputs and update dev pin
-        id: pin
-        env:
-          VERSION: ${{ needs.release.outputs.release_tag }}
-          IMAGE_REPOSITORY: ${{ needs.container.outputs.image_repository }}
-          VERSION_IMAGE: ${{ needs.container.outputs.version_image }}
-          IMAGE_DIGEST: ${{ needs.container.outputs.image_digest }}
-          VERSION_IMAGE_DIGEST: ${{ needs.container.outputs.version_image_digest }}
-        run: |
-          python3 application/scripts/update_infrastructure_pin.py \
-            infrastructure/environments/dev.yml \
-            --version "$VERSION" \
-            --digest "$IMAGE_DIGEST" \
-            --repository "$IMAGE_REPOSITORY" \
-            --image "$VERSION_IMAGE" \
-            --reference "$VERSION_IMAGE_DIGEST" >> "$GITHUB_OUTPUT"
-
-      - name: Create or reuse infrastructure PR
-        id: promotion_pr
-        if: steps.pin.outputs.changed == 'true'
-        working-directory: infrastructure
-        env:
-          GH_TOKEN: ${{ secrets.INFRASTRUCTURE_PR_TOKEN }}
-          VERSION: ${{ needs.release.outputs.release_tag }}
-          IMAGE_DIGEST: ${{ needs.container.outputs.image_digest }}
-          VERSION_IMAGE: ${{ needs.container.outputs.version_image }}
-          VERSION_IMAGE_DIGEST: ${{ needs.container.outputs.version_image_digest }}
-        run: |
-          set -euo pipefail
-          branch="chore/portfolio-website-$VERSION"
-          title="chore(deps): update website portfolio to $VERSION"
-          git config user.name 'portfolio-website release bot'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-
-          if git ls-remote --exit-code --heads origin "$branch" >/dev/null; then
-            git fetch origin "refs/heads/$branch"
-            existing_pr="$(gh pr list --repo SpencerRWood/infrastructure --head "$branch" --state open --json number --jq '.[0].number // empty')"
-            if [[ -z "$existing_pr" ]]; then
-              echo "Version branch exists without an open PR; review it manually: $branch" >&2
-              exit 1
-            fi
-            changed_files="$(git diff --name-only origin/main...FETCH_HEAD)"
-            if [[ "$changed_files" != 'environments/dev.yml' ]] || ! git show FETCH_HEAD:environments/dev.yml | cmp -s - environments/dev.yml; then
-              echo "Existing version branch differs from the requested one-line pin; review it manually: $branch" >&2
-              exit 1
-            fi
-            echo "Reusing infrastructure PR #$existing_pr for $VERSION"
-            pr_number="$existing_pr"
-          else
-            status=$?
-            if [[ "$status" -ne 2 ]]; then
-              echo "Could not check the infrastructure version branch" >&2
-              exit "$status"
-            fi
-            git switch -c "$branch"
-            git add -- environments/dev.yml
-            git diff --cached --check
-            git diff --cached --name-only | grep -Fx 'environments/dev.yml'
-            git commit -m "$title"
-            git push origin "HEAD:refs/heads/$branch"
-
-            release_sha="$(git -C ../application rev-parse HEAD)"
-            cat > "$RUNNER_TEMP/infrastructure-pr-body.md" <<EOF
-          Application release: $VERSION
-          Application release commit: $release_sha
-          GHCR semantic image: $VERSION_IMAGE
-          Image digest: $IMAGE_DIGEST
-          Digest-qualified reference: $VERSION_IMAGE_DIGEST
-          Source release: https://github.com/SpencerRWood/portfolio-website/releases/tag/$VERSION
-          Source run: https://github.com/SpencerRWood/portfolio-website/actions/runs/$GITHUB_RUN_ID
-
-          The image was successfully published before this PR was created. Merging this PR invokes the existing infrastructure release and deployment pipeline.
-          EOF
-            gh pr create --repo SpencerRWood/infrastructure --base main --head "$branch" --title "$title" --body-file "$RUNNER_TEMP/infrastructure-pr-body.md"
-            pr_number="$(gh pr view "$branch" --repo SpencerRWood/infrastructure --json number --jq .number)"
-          fi
-
-          echo "number=$pr_number" >> "$GITHUB_OUTPUT"
-          echo "Infrastructure PR #$pr_number is ready for validation"
-
-      - name: Wait for validation and merge exact dev promotion
-        if: steps.pin.outputs.changed == 'true'
-        env:
-          GH_TOKEN: ${{ secrets.INFRASTRUCTURE_PR_TOKEN }}
-          VERSION: ${{ needs.release.outputs.release_tag }}
-          IMAGE_DIGEST: ${{ needs.container.outputs.image_digest }}
-          PR_NUMBER: ${{ steps.promotion_pr.outputs.number }}
-        run: |
-          python3 application/scripts/verify_infrastructure_pr.py \
-            "$PR_NUMBER" "$VERSION" "$IMAGE_DIGEST" "chore/portfolio-website-$VERSION"
+    with:
+      infrastructure_repository: SpencerRWood/infrastructure
+      environment_file: environments/dev.yml
+      image_key: portfolio_website_image_ref
+      image_name: portfolio-website
+      release_tag: ${{ needs.release.outputs.release_tag }}
+      image_repository: ${{ needs.container.outputs.image_repository }}
+      version_image: ${{ needs.container.outputs.version_image }}
+      image_digest: ${{ needs.container.outputs.image_digest }}
+      version_image_digest: ${{ needs.container.outputs.version_image_digest }}
+      promotion_branch_prefix: chore/portfolio-website-
+      pr_title_template: 'chore(deps): update website portfolio to {version}'
+    secrets:
+      infrastructure_token: ${{ secrets.INFRASTRUCTURE_PR_TOKEN }}

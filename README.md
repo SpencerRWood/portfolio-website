@@ -208,8 +208,9 @@ If an existing GHCR package denies this repository access, add
 `SpencerRWood/portfolio-website` under the `portfolio-website` package's
 **Settings → Manage Actions access** with **Write** permission.
 
-After a new semantic release and successful GHCR publication, the release
-workflow proposes the exact `vX.Y.Z@sha256:...` reference in
+After a new semantic release and successful GHCR publication, the shared
+`promote-container-to-dev.yml@v1` workflow proposes the exact
+`vX.Y.Z@sha256:...` reference in
 `SpencerRWood/infrastructure` as a PR against `main`. It uses the branch
 `chore/portfolio-website-vX.Y.Z` and commit/PR title
 `chore(deps): update website portfolio to vX.Y.Z`. The dev handoff waits up to
@@ -224,21 +225,22 @@ or a changed PR leaves it open and fails the promotion job; the published
 application release and image remain valid. The failed job can be rerun after
 the cause is fixed. Production promotion remains manual.
 
-The dev promotion job is serialized across application versions. An exact
+The shared dev promotion job is serialized across application versions. An exact
 image pin is a no-op, an existing open promotion PR is reused, and a stale
 version branch with different content requires manual review. Release workflow
 reruns do not create another promotion; a newer dev pin cannot be downgraded
 by an older release.
 
 Configure the `INFRASTRUCTURE_PR_TOKEN` repository secret in
-`SpencerRWood/portfolio-website` before the next release. Use a fine-grained
+`SpencerRWood/portfolio-website` before the next release. It is passed as the
+reusable workflow's `infrastructure_token` secret. Use a fine-grained
 GitHub PAT restricted to `SpencerRWood/infrastructure` with **Contents:
 read/write**, **Pull requests: read/write**, and **Commit statuses: read** so the
 promotion can inspect the exact PR head's validation status. The normal `GITHUB_TOKEN`
 publishes this repository's image; it cannot create a branch and PR in the
 private infrastructure repository. Rotate the secret through GitHub settings.
 
-The dev handoff is: semantic release → GHCR publish → infrastructure PR →
+The dev handoff is: semantic release → GHCR publish → shared dev promotion → infrastructure PR →
 central validation → exact-diff verification → squash merge → infrastructure
 patch release → existing Ansible deployment and Beelink readiness checks.
 This repository does not deploy directly. Production is outside this handoff.
