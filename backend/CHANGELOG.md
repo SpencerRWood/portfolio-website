@@ -2,6 +2,29 @@
 
 <!-- version list -->
 
+## v0.7.0 (2026-09-23)
+
+### Bug Fixes
+
+- **ci**: Inspect branch rules with contents access
+  ([#9](https://github.com/SpencerRWood/portfolio-website/pull/9),
+  [`a9e3771`](https://github.com/SpencerRWood/portfolio-website/commit/a9e3771d808782a3baa9c3b7e9aff6401b22f97f))
+
+### Features
+
+- **ci**: Gate dev image PR auto-merge on validation
+  ([#9](https://github.com/SpencerRWood/portfolio-website/pull/9),
+  [`a9e3771`](https://github.com/SpencerRWood/portfolio-website/commit/a9e3771d808782a3baa9c3b7e9aff6401b22f97f))
+
+- **ci**: Propose published website image to infrastructure
+  ([#9](https://github.com/SpencerRWood/portfolio-website/pull/9),
+  [`a9e3771`](https://github.com/SpencerRWood/portfolio-website/commit/a9e3771d808782a3baa9c3b7e9aff6401b22f97f))
+
+- **ci**: Propose released portfolio image through infrastructure PR
+  ([#9](https://github.com/SpencerRWood/portfolio-website/pull/9),
+  [`a9e3771`](https://github.com/SpencerRWood/portfolio-website/commit/a9e3771d808782a3baa9c3b7e9aff6401b22f97f))
+
+
 ## v0.6.0 (2026-09-22)
 
 ### Features
