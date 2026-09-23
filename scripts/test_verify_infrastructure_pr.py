@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import copy
+import subprocess
 import unittest
+from unittest.mock import patch
 
-from verify_infrastructure_pr import ensure_head, validate, validation_result
+from verify_infrastructure_pr import commit_statuses, ensure_head, validate, validation_result
 
 VERSION = "v1.2.3"
 DIGEST = "sha256:" + "a" * 64
@@ -77,34 +79,51 @@ class AutoMergeSafetyTests(unittest.TestCase):
 class ValidationGateTests(unittest.TestCase):
     def setUp(self) -> None:
         self.sha = "b" * 40
-        self.check = {
+        self.status = {
             "id": 1,
-            "name": "validation / validation",
-            "head_sha": self.sha,
-            "app": {"slug": "github-actions"},
-            "status": "completed",
-            "conclusion": "success",
+            "context": "infrastructure-validation",
+            "url": f"https://api.github.com/repos/{REPOSITORY}/statuses/{self.sha}",
+            "target_url": f"https://github.com/{REPOSITORY}/actions/runs/123",
+            "creator": {"login": "github-actions[bot]"},
+            "state": "success",
         }
 
     def test_successful_validation_allows_merge(self) -> None:
-        self.assertEqual(validation_result([self.check], self.sha), "success")
+        self.assertEqual(validation_result([self.status], self.sha), "success")
+
+    def test_missing_status_waits(self) -> None:
+        self.assertEqual(validation_result([], self.sha), "pending")
+
+    def test_pending_status_waits(self) -> None:
+        self.status["state"] = "pending"
+        self.assertEqual(validation_result([self.status], self.sha), "pending")
 
     def test_failed_validation_blocks_merge(self) -> None:
-        self.check["conclusion"] = "failure"
+        self.status["state"] = "failure"
         with self.assertRaisesRegex(ValueError, "failure"):
-            validation_result([self.check], self.sha)
+            validation_result([self.status], self.sha)
 
-    def test_cancelled_validation_blocks_merge(self) -> None:
-        self.check["conclusion"] = "cancelled"
-        with self.assertRaisesRegex(ValueError, "cancelled"):
-            validation_result([self.check], self.sha)
+    def test_error_status_blocks_merge(self) -> None:
+        self.status["state"] = "error"
+        with self.assertRaisesRegex(ValueError, "error"):
+            validation_result([self.status], self.sha)
 
     def test_latest_rerun_must_succeed(self) -> None:
-        rerun = {**self.check, "id": 2, "status": "in_progress", "conclusion": None}
-        self.assertEqual(validation_result([self.check, rerun], self.sha), "pending")
+        rerun = {**self.status, "id": 2, "state": "pending"}
+        self.assertEqual(validation_result([self.status, rerun], self.sha), "pending")
 
-    def test_other_sha_does_not_count(self) -> None:
-        self.assertEqual(validation_result([self.check], "c" * 40), "pending")
+    def test_wrong_context_is_ignored(self) -> None:
+        self.status["context"] = "unrelated"
+        self.assertEqual(validation_result([self.status], self.sha), "pending")
+
+    def test_stale_sha_is_ignored(self) -> None:
+        self.assertEqual(validation_result([self.status], "c" * 40), "pending")
+
+    def test_missing_status_read_permission_has_actionable_error(self) -> None:
+        error = subprocess.CalledProcessError(1, ["gh", "api"], stderr="HTTP 403")
+        with patch("verify_infrastructure_pr.api", side_effect=error):
+            with self.assertRaisesRegex(RuntimeError, "Commit statuses: read.*HTTP 403"):
+                commit_statuses(self.sha)
 
 
 if __name__ == "__main__":

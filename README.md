@@ -213,7 +213,8 @@ workflow proposes the exact `vX.Y.Z@sha256:...` reference in
 `SpencerRWood/infrastructure` as a PR against `main`. It uses the branch
 `chore/portfolio-website-vX.Y.Z` and commit/PR title
 `chore(deps): update website portfolio to vX.Y.Z`. The dev handoff waits up to
-20 minutes for the infrastructure PR's `validation / validation` check. It
+20 minutes for the `infrastructure-validation` commit status, which the
+centralized workflow publishes from its `validation / validation` result. It
 re-fetches the PR, verifies its unchanged head and exact one-line
 `environments/dev.yml` image pin, checks that dev is not already running a
 newer application version, then squash-merges only that PR. The
@@ -232,8 +233,8 @@ by an older release.
 Configure the `INFRASTRUCTURE_PR_TOKEN` repository secret in
 `SpencerRWood/portfolio-website` before the next release. Use a fine-grained
 GitHub PAT restricted to `SpencerRWood/infrastructure` with **Contents:
-read/write**, **Pull requests: read/write**, and **Checks: read** so the
-promotion can inspect the exact validation check. The normal `GITHUB_TOKEN`
+read/write**, **Pull requests: read/write**, and **Commit statuses: read** so the
+promotion can inspect the exact PR head's validation status. The normal `GITHUB_TOKEN`
 publishes this repository's image; it cannot create a branch and PR in the
 private infrastructure repository. Rotate the secret through GitHub settings.
 
