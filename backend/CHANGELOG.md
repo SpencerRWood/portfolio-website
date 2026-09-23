@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v0.8.4 (2026-09-23)
+
+### Bug Fixes
+
+- **ci**: Adopt v2 container promotion contract
+  ([#15](https://github.com/SpencerRWood/portfolio-website/pull/15),
+  [`fafb78c`](https://github.com/SpencerRWood/portfolio-website/commit/fafb78c88561a43035028524dc7f579ef35585a1))
+
+
 ## v0.8.3 (2026-09-23)
 
 ### Bug Fixes
