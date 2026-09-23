@@ -15,13 +15,13 @@ jobs:
   container:
     needs: release
     if: needs.release.outputs.released == 'true'
-    uses: SpencerRWood/workflows/.github/workflows/container-release.yml@v1.1.0
+    uses: SpencerRWood/workflows/.github/workflows/container-release.yml@v1
     permissions:
       contents: read
       packages: write
     with:
       release_tag: ${{ needs.release.outputs.release_tag }}
-      image_name: website-portfolio
+      image_name: portfolio-website
 
   infrastructure-pr:
     name: Propose published image to infrastructure
@@ -31,10 +31,11 @@ jobs:
       github.run_attempt == 1 && needs.release.outputs.released == 'true' &&
       needs.container.result == 'success' }}
     runs-on: ubuntu-latest
+    continue-on-error: true
     permissions:
       contents: read
     concurrency:
-      group: website-portfolio-infrastructure-${{ needs.release.outputs.release_tag }}
+      group: portfolio-website-infrastructure-${{ needs.release.outputs.release_tag }}
       cancel-in-progress: false
     steps:
       - name: Require cross-repository credential
@@ -86,9 +87,9 @@ jobs:
           VERSION_IMAGE_DIGEST: ${{ needs.container.outputs.version_image_digest }}
         run: |
           set -euo pipefail
-          branch="chore/website-portfolio-$VERSION"
+          branch="chore/portfolio-website-$VERSION"
           title="chore(deps): update website portfolio to $VERSION"
-          git config user.name 'website-portfolio release bot'
+          git config user.name 'portfolio-website release bot'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
 
           if git ls-remote --exit-code --heads origin "$branch" >/dev/null; then
@@ -134,10 +135,5 @@ jobs:
             pr_number="$(gh pr view "$branch" --repo SpencerRWood/infrastructure --json number --jq .number)"
           fi
 
-          verification="$(python3 ../application/scripts/verify_infrastructure_pr.py "$pr_number" "$VERSION" "$IMAGE_DIGEST" "$branch")"
-          read -r pr_head_sha auto_merge_enabled <<< "$verification"
-          if [[ "$auto_merge_enabled" == 'false' ]]; then
-            gh pr merge "$pr_number" --repo SpencerRWood/infrastructure --auto --squash --subject "$title" --match-head-commit "$pr_head_sha"
-          else
-            echo "Auto-merge already enabled for infrastructure PR #$pr_number"
-          fi
+          python3 ../application/scripts/verify_infrastructure_pr.py "$pr_number" "$VERSION" "$IMAGE_DIGEST" "$branch"
+          echo "Infrastructure PR #$pr_number is ready for validation and review"

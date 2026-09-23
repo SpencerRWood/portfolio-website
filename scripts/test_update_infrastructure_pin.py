@@ -14,7 +14,7 @@ REFERENCE = f"{IMAGE_REPOSITORY}:{VERSION}@{DIGEST}"
 ORIGINAL = (
     "environment_name: dev\n"
     "# keep this comment\n"
-    f"website_portfolio_image_ref: {IMAGE_REPOSITORY}:v0.6.0@sha256:{'b' * 64}\n"
+    f"portfolio_website_image_ref: {IMAGE_REPOSITORY}:v0.6.0@sha256:{'b' * 64}\n"
     "services:\n  postgres: true\n"
 )
 
@@ -56,11 +56,11 @@ class PinUpdateTests(unittest.TestCase):
 
     def test_missing_key_fails(self) -> None:
         self.path.write_text("services:\n  postgres: true\n", encoding="utf-8")
-        with self.assertRaisesRegex(ValueError, "expected exactly one website_portfolio_image_ref"):
+        with self.assertRaisesRegex(ValueError, "expected exactly one portfolio_website_image_ref"):
             self.update()
 
     def test_duplicate_key_fails(self) -> None:
-        self.path.write_text(ORIGINAL + "website_portfolio_image_ref: unexpected\n", encoding="utf-8")
+        self.path.write_text(ORIGINAL + "portfolio_website_image_ref: unexpected\n", encoding="utf-8")
         with self.assertRaisesRegex(ValueError, "found 2"):
             self.update()
 

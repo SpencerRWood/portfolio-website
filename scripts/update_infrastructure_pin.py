@@ -7,10 +7,10 @@ import re
 import sys
 from pathlib import Path
 
-IMAGE_REPOSITORY = "ghcr.io/spencerrwood/website-portfolio"
+IMAGE_REPOSITORY = "ghcr.io/spencerrwood/portfolio-website"
 VERSION_PATTERN = re.compile(r"v(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\Z")
 DIGEST_PATTERN = re.compile(r"sha256:[0-9a-f]{64}\Z")
-PIN_PATTERN = re.compile(r"^website_portfolio_image_ref: .+$", re.MULTILINE)
+PIN_PATTERN = re.compile(r"^portfolio_website_image_ref: .+$", re.MULTILINE)
 
 
 def update_pin(path: Path, version: str, digest: str, repository: str, image: str, reference: str) -> bool:
@@ -29,8 +29,8 @@ def update_pin(path: Path, version: str, digest: str, repository: str, image: st
     content = path.read_text(encoding="utf-8")
     matches = list(PIN_PATTERN.finditer(content))
     if len(matches) != 1:
-        raise ValueError(f"expected exactly one website_portfolio_image_ref in {path}; found {len(matches)}")
-    replacement = f"website_portfolio_image_ref: {expected_reference}"
+        raise ValueError(f"expected exactly one portfolio_website_image_ref in {path}; found {len(matches)}")
+    replacement = f"portfolio_website_image_ref: {expected_reference}"
     if matches[0].group() == replacement:
         return False
     updated = content[: matches[0].start()] + replacement + content[matches[0].end() :]
