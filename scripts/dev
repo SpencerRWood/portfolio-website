@@ -1,0 +1,67 @@
+#!/usr/bin/env python3
+"""Run a local command with the portfolio dev secret from Infisical."""
+
+import os
+import shutil
+import sys
+from pathlib import Path
+from urllib.parse import urlsplit, urlunsplit
+
+PROJECT_ID = "7ea10433-2eeb-4c57-95a9-b793dd40c7a4"
+DOMAIN = "https://dev-infisical.woodhost.cloud/api"
+
+
+def main() -> None:
+    root = Path(__file__).resolve().parent.parent
+    os.chdir(root)
+    args = sys.argv[1:]
+    if args and args[0] == "--injected":
+        command = args[1:]
+        source = urlsplit(os.environ.get("DATABASE_URL", ""))
+        if (
+            not command
+            or source.scheme not in {"postgresql", "postgresql+psycopg"}
+            or "@" not in source.netloc
+        ):
+            raise SystemExit("An Infisical DATABASE_URL and a command are required.")
+        host = os.environ.get("PORTFOLIO_DEV_DB_HOST", "192.168.1.21")
+        port = os.environ.get("PORTFOLIO_DEV_DB_PORT", "25433")
+        if not port.isdecimal() or not 1 <= int(port) <= 65535:
+            raise SystemExit("PORTFOLIO_DEV_DB_PORT must be a TCP port.")
+        local_url = urlunsplit(
+            (
+                source.scheme,
+                source.netloc.rsplit("@", 1)[0] + f"@{host}:{port}",
+                source.path,
+                source.query,
+                source.fragment,
+            )
+        )
+        environment = os.environ.copy()
+        environment["DATABASE_URL"] = local_url
+        os.execvpe(command[0], command, environment)  # noqa: S606
+    if not args:
+        raise SystemExit("Usage: ./scripts/dev <command> [args...]")
+    executable = shutil.which("infisical")
+    if executable is None:
+        raise SystemExit("Infisical CLI is required for local development.")
+    os.execv(  # noqa: S606
+        executable,
+        [
+            executable,
+            "run",
+            f"--domain={DOMAIN}",
+            f"--projectId={PROJECT_ID}",
+            "--env=dev",
+            "--path=/portfolio-website",
+            "--",
+            sys.executable,
+            str(Path(__file__).resolve()),
+            "--injected",
+            *args,
+        ],
+    )
+
+
+if __name__ == "__main__":
+    main()
