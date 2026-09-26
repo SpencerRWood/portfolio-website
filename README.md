@@ -50,10 +50,13 @@ small Vite application shell and leaves API-specific behavior under
 ## Runtime Configuration
 
 The application defaults to `WEBSITE_ENV=development`. Local development can
-set `WOOD_DATA_PLATFORM_DATABASE_URL` to use the Wood Data Platform PostgreSQL
-service without putting credentials in source control. Production requires a
-deployment-injected `DATABASE_URL`; the backend refuses to start in production
-without it. See `.env.example` for the non-secret variable names.
+use the existing `Infrastructure Dev/dev:/portfolio-website` Infisical secret.
+`./scripts/dev` changes only its hostname and port to the host-facing development
+PostgreSQL endpoint; the stored container URL remains unchanged. Override the
+ordinary endpoint with `PORTFOLIO_DEV_DB_HOST` and `PORTFOLIO_DEV_DB_PORT` when
+needed. Production requires a deployment-injected `DATABASE_URL`; the backend
+refuses to start in production without it. See `.env.example` for the config
+variable names. Local commands do not require a plaintext `.env` file.
 
 ## Prerequisites
 
@@ -83,7 +86,8 @@ uv build
 Run the backend locally:
 
 ```sh
-uv run uvicorn portfolio_website.main:app --reload
+infisical login --domain=https://dev-infisical.woodhost.cloud/api --method=user --interactive
+./scripts/dev uv run --frozen --directory backend uvicorn portfolio_website.main:app --reload
 ```
 
 ## Frontend Setup
@@ -114,7 +118,7 @@ npm run dev
 From the repository root:
 
 ```sh
-docker compose up --build
+./scripts/dev docker compose up --build
 ```
 
 This starts:
@@ -134,8 +138,8 @@ process.
 
 ```sh
 docker build -t portfolio-website:local .
-docker run --rm -p 8000:8000 \
-  -e DATABASE_URL=postgresql://user:password@database:5432/portfolio_website \
+./scripts/dev docker run --rm -p 8000:8000 \
+  -e DATABASE_URL \
   portfolio-website:local
 curl --fail http://localhost:8000/health
 ```
