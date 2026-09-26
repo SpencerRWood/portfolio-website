@@ -63,3 +63,5 @@ pnpm-debug.log*
 # Local project artifacts
 artifacts/
 output/
+
+AGENTS.md
