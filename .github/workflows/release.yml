@@ -4,12 +4,14 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
   release:
+    if: github.ref == 'refs/heads/main'
     uses: SpencerRWood/workflows/.github/workflows/release-container.yml@v3
     permissions:
       contents: write
@@ -18,7 +20,7 @@ jobs:
   promotion:
     needs: release
     if: >-
-      ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+      ${{ github.ref == 'refs/heads/main' &&
       needs.release.outputs.released == 'true' }}
     uses: SpencerRWood/workflows/.github/workflows/promote-container-to-dev.yml@v2
     permissions:
