@@ -19,3 +19,7 @@ checks = ["lint", "typecheck", "test", "build"]
 
 [release]
 semantic_release = true
+
+[container]
+publish = true
+image_name = "portfolio-website"
