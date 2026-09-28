@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   release:
-    uses: SpencerRWood/workflows/.github/workflows/release-container.yml@8d3acbcb4faeae1f059aa8faad71ce5de964bc1c
+    uses: SpencerRWood/workflows/.github/workflows/release-container.yml@v3
     permissions:
       contents: write
       packages: write

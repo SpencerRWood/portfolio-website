@@ -9,4 +9,4 @@ permissions:
 
 jobs:
   validation:
-    uses: SpencerRWood/workflows/.github/workflows/validate.yml@8d3acbcb4faeae1f059aa8faad71ce5de964bc1c
+    uses: SpencerRWood/workflows/.github/workflows/validate.yml@v3
