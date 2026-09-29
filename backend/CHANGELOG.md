@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.9.1 (2026-09-29)
+
+### Bug Fixes
+
+- Remove vertical background lines
+  ([`ff9e3f1`](https://github.com/SpencerRWood/portfolio-website/commit/ff9e3f16466accb26f1db73d8e33f09d91dc1c4b))
+
+
 ## v0.9.0 (2026-09-26)
 
 ### Features
