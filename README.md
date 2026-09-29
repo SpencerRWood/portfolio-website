@@ -200,14 +200,14 @@ The frontend package version starts at the same value for search-and-replace
 clarity, but the default release workflow is repository-level rather than
 separate frontend/backend release tracks.
 
-When semantic-release creates a new tag, the release workflow calls the
-centralized container publisher with that tag. It publishes
+The integrated `release-container.yml@v3` workflow builds and verifies the
+container before publishing the semantic Git tag and GitHub Release. It publishes
 `ghcr.io/spencerrwood/portfolio-website:vX.Y.Z` and
 `ghcr.io/spencerrwood/portfolio-website:sha-<full-commit-sha>` and exposes a
 digest-qualified version reference. Older dev releases remain pinned to the
 legacy `website-portfolio` package until infrastructure promotes a new image.
 
-The publisher uses `GITHUB_TOKEN` with `contents: read` and `packages: write`.
+The release job uses `GITHUB_TOKEN` with `contents: write` and `packages: write`.
 If an existing GHCR package denies this repository access, add
 `SpencerRWood/portfolio-website` under the `portfolio-website` package's
 **Settings → Manage Actions access** with **Write** permission.
@@ -244,7 +244,8 @@ promotion can inspect the exact PR head's validation status. The normal `GITHUB_
 publishes this repository's image; it cannot create a branch and PR in the
 private infrastructure repository. Rotate the secret through GitHub settings.
 
-The dev handoff is: semantic release → GHCR publish → shared dev promotion → infrastructure PR →
+The dev handoff is: validated GHCR image → semantic release → shared dev
+promotion → infrastructure PR →
 central validation → exact-diff verification → squash merge → infrastructure
 patch release → existing Ansible deployment and Beelink readiness checks.
 This repository does not deploy directly. Production is outside this handoff.
