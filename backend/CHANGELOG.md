@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.11.0 (2026-10-01)
+
+### Features
+
+- **content**: Derive bidirectional relationships and expose Topics routes
+  ([`73c217b`](https://github.com/SpencerRWood/portfolio-website/commit/73c217b82f42dbd3010b5f6152d9398161f5911f))
+
+
 ## v0.10.0 (2026-10-01)
 
 
