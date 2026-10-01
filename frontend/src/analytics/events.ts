@@ -17,13 +17,13 @@ export const analyticsEvent = {
 type EventProperties = Record<string, string>;
 
 export type PageType =
-  "home" | "section_index" | "blog_article" | "topic" | "project" | "static_page";
+  "home" | "section_index" | "blog_article" | "area" | "project" | "static_page";
 
 export interface PageViewProperties {
   pageType: PageType;
   pageSlug: string;
   pageTitle: string;
-  section?: "topics" | "blog" | "projects";
+  section?: "areas" | "blog" | "projects";
 }
 
 export interface PageSource {

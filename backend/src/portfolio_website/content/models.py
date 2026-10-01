@@ -4,7 +4,8 @@ from dataclasses import dataclass
 from datetime import date
 from typing import Literal
 
-ContentSection = Literal["topics", "blog", "projects"]
+ContentSection = Literal["areas", "blog", "projects"]
+AreaGroup = Literal["Analytics", "Engineering"]
 
 
 @dataclass(frozen=True)
@@ -16,19 +17,20 @@ class ContentPage:
     section: ContentSection
     summary: str
     body_html: str
-    # ``order`` orders topics/projects and breaks same-date blog publication ties.
+    # ``order`` orders areas/projects and breaks same-date blog publication ties.
     order: int = 0
-    topics: tuple[str, ...] = ()
+    areas: tuple[str, ...] = ()
     nav: bool = False
     # ``featured`` is editorial promotion; ``published`` is primary blog chronology.
     featured: bool = False
     published: date | None = None
     repository: str | None = None
+    group: AreaGroup | None = None
 
 
 @dataclass(frozen=True)
-class Topic(ContentPage):
-    """A topic index entry."""
+class Area(ContentPage):
+    """A area index entry."""
 
 
 @dataclass(frozen=True)
@@ -49,6 +51,7 @@ class NavigationItem:
     slug: str
     section: ContentSection
     order: int
+    group: AreaGroup | None = None
 
 
 @dataclass(frozen=True)
@@ -64,7 +67,7 @@ class SiteNavigationItem:
 class FooterNavigation:
     """Footer navigation authored in the reusable footer partial."""
 
-    topics_title: str
+    areas_title: str
     items: tuple[SiteNavigationItem, ...]
 
 
@@ -90,9 +93,9 @@ class Homepage:
     primary_link_destination: str
     aside_title: str
     aside_summary: str
-    topics_eyebrow: str
-    topics_title: str
-    topics_summary: str
+    areas_eyebrow: str
+    areas_title: str
+    areas_summary: str
     blog_eyebrow: str
     blog_title: str
     blog_summary: str

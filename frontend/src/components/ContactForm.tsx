@@ -86,7 +86,7 @@ export function ContactForm({ source }: { source: PageSource }) {
         {isSubmitting ? "Sending…" : "Send message"} <span aria-hidden="true">↗</span>
       </button>
       {status ? (
-        <p className="border-l-2 border-black pl-3 text-sm" role="status">
+        <p className="text-sm" role="status">
           {status}
         </p>
       ) : null}

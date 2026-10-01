@@ -59,19 +59,19 @@ describe("content API client", () => {
         () => new Response(JSON.stringify({ slug: "data-modeling" }), { status: 200 }),
       );
 
-    await expect(getSitePage("topics", request)).resolves.toEqual({
+    await expect(getSitePage("areas", request)).resolves.toEqual({
       slug: "data-modeling",
     });
-    await expect(getContentPage("topics", "data-modeling", request)).resolves.toEqual({
+    await expect(getContentPage("areas", "data-modeling", request)).resolves.toEqual({
       slug: "data-modeling",
     });
     expect(request).toHaveBeenNthCalledWith(
       1,
-      "http://localhost:8000/content/site/topics",
+      "http://localhost:8000/content/site/areas",
     );
     expect(request).toHaveBeenNthCalledWith(
       2,
-      "http://localhost:8000/content/topics/data-modeling",
+      "http://localhost:8000/content/areas/data-modeling",
     );
   });
 
@@ -81,13 +81,13 @@ describe("content API client", () => {
       .mockImplementation(() => new Response(JSON.stringify([]), { status: 200 }));
 
     await expect(getHomepageContent(request)).resolves.toEqual({
-      topics: [],
+      areas: [],
       blog: [],
       projects: [],
       homepage: [],
       navigation: [],
     });
-    expect(request).toHaveBeenNthCalledWith(1, "http://localhost:8000/content/topics");
+    expect(request).toHaveBeenNthCalledWith(1, "http://localhost:8000/content/areas");
     expect(request).toHaveBeenNthCalledWith(2, "http://localhost:8000/content/blog");
     expect(request).toHaveBeenNthCalledWith(
       3,

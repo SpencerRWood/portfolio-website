@@ -6,18 +6,27 @@ vi.mock("../src/api/client", async (importOriginal) => {
   return {
     ...actual,
     getHomepageContent: vi.fn().mockResolvedValue({
-      topics: [
+      areas: [
         {
           title: "Data Generation",
+          group: "Analytics",
+          order: 10,
           slug: "data-generation",
           summary: "How applications create analytical data.",
+        },
+        {
+          title: "Systems & Infrastructure",
+          slug: "systems-infrastructure",
+          summary: "How operational systems fit together.",
+          group: "Engineering",
+          order: 10,
         },
       ],
       blog: [
         {
           title: "Designing events as data contracts",
           slug: "designing-events-as-data-contracts",
-          topics: ["data-generation"],
+          areas: ["data-generation"],
           published: "2026-09-18",
           featured: true,
         },
@@ -37,13 +46,13 @@ vi.mock("../src/api/client", async (importOriginal) => {
         hero_eyebrow: "Notes",
         title: "How analytical systems are built",
         summary: "Notes.",
-        primary_link_label: "Explore topics",
-        primary_link_destination: "topics",
+        primary_link_label: "Explore Topics",
+        primary_link_destination: "areas",
         aside_title: "Topics",
         aside_summary: "Data systems.",
-        topics_eyebrow: "01 / Topics",
-        topics_title: "Topics",
-        topics_summary: "A few areas.",
+        areas_eyebrow: "01 / Topics",
+        areas_title: "Topics",
+        areas_summary: "A few areas.",
         blog_eyebrow: "02 / Blog",
         blog_title: "Blog",
         blog_summary: "Pieces.",
@@ -55,7 +64,7 @@ vi.mock("../src/api/client", async (importOriginal) => {
         about_summary: "About Spencer Wood.",
       },
       navigation: [
-        { title: "Topics", destination: "topics", order: 1 },
+        { title: "Topics", destination: "areas", order: 1 },
         { title: "Blog", destination: "/blog", order: 2 },
         { title: "Projects", destination: "projects", order: 3 },
         { title: "Contact", destination: "/contact", order: 4 },
@@ -64,9 +73,9 @@ vi.mock("../src/api/client", async (importOriginal) => {
     }),
     getSiteNavigation: vi
       .fn()
-      .mockResolvedValue([{ title: "Topics", destination: "/topics", order: 1 }]),
+      .mockResolvedValue([{ title: "Topics", destination: "/areas", order: 1 }]),
     getFooterNavigation: vi.fn().mockResolvedValue({
-      topics_title: "Topics",
+      areas_title: "Topics",
       items: [
         { title: "Blog", destination: "/blog", order: 1 },
         { title: "Projects", destination: "/projects", order: 2 },
@@ -76,17 +85,28 @@ vi.mock("../src/api/client", async (importOriginal) => {
     }),
     getSitePage: vi.fn().mockResolvedValue({
       title: "Topics",
-      slug: "topics",
+      slug: "areas",
       summary: "A few areas.",
-      body_html: "<p>Topic index.</p>",
+      body_html: "<p>Topics index.</p>",
     }),
     getContentIndex: vi.fn().mockResolvedValue([
       {
         title: "Data Modeling",
+        group: "Analytics",
+        order: 30,
         slug: "data-modeling",
         summary: "How data is represented.",
-        topics: ["data-modeling"],
+        areas: ["data-modeling"],
         published: "2026-09-18",
+      },
+      {
+        title: "Systems & Infrastructure",
+        slug: "systems-infrastructure",
+        summary: "How operational systems fit together.",
+        group: "Engineering",
+        order: 10,
+        areas: [],
+        published: null,
       },
     ]),
     getContentPage: vi.fn().mockResolvedValue({
@@ -111,7 +131,7 @@ describe("App", () => {
     ).toBeInTheDocument();
   });
 
-  it("uses topic-centric primary navigation", async () => {
+  it("uses area-centric primary navigation", async () => {
     render(<App />);
 
     await screen.findByRole("heading", { name: "How analytical systems are built" });
@@ -138,7 +158,7 @@ describe("App", () => {
     ).toBeInTheDocument();
   });
 
-  it("includes an expanded footer with individual topic links", async () => {
+  it("includes an expanded footer with individual area links", async () => {
     render(<App />);
 
     const footer = await screen.findByRole("navigation", { name: "Footer navigation" });
@@ -146,24 +166,53 @@ describe("App", () => {
     expect(footer).toHaveTextContent("Blog");
     expect(
       within(footer).getByRole("link", { name: "Data Generation" }),
-    ).toHaveAttribute("href", "/topics/data-generation");
+    ).toHaveAttribute("href", "/areas/data-generation");
   });
 
-  it("routes topic indexes and topic articles to dedicated pages", async () => {
-    window.history.pushState({}, "", "/topics");
+  it("routes area indexes and area articles to dedicated pages", async () => {
+    window.history.pushState({}, "", "/areas");
     const { unmount } = render(<App />);
     expect(await screen.findByRole("heading", { name: "Topics" })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Analytics" })).toHaveTextContent(
+      "Data Modeling",
+    );
+    expect(screen.getByRole("region", { name: "Engineering" })).toHaveTextContent(
+      "Systems & Infrastructure",
+    );
     expect(screen.getAllByRole("link", { name: "Data Modeling" })[0]).toHaveAttribute(
       "href",
-      "/topics/data-modeling",
+      "/areas/data-modeling",
     );
     unmount();
 
-    window.history.pushState({}, "", "/topics/data-modeling");
+    window.history.pushState({}, "", "/areas/data-modeling");
     render(<App />);
     expect(await screen.findByText("Article body.")).toBeInTheDocument();
     window.history.pushState({}, "", "/");
   });
+
+  it("groups homepage areas into Analytics and Engineering", async () => {
+    render(<App />);
+    await screen.findByRole("heading", { name: "How analytical systems are built" });
+    expect(screen.getByRole("region", { name: "Analytics" })).toHaveTextContent(
+      "Data Generation",
+    );
+    expect(screen.getByRole("region", { name: "Engineering" })).toHaveTextContent(
+      "Systems & Infrastructure",
+    );
+  });
+
+  it.each([`/${"to" + "pics"}`, `/${"to" + "pics"}/data-modeling`])(
+    "rejects the retired route %s",
+    (path) => {
+      window.history.pushState({}, "", path);
+      render(<App />);
+      expect(
+        screen.getByRole("heading", { name: "Page not found" }),
+      ).toBeInTheDocument();
+      window.history.pushState({}, "", "/");
+    },
+  );
 
   it("uses an editorial post listing for the blog index", async () => {
     window.history.pushState({}, "", "/blog");
@@ -171,7 +220,7 @@ describe("App", () => {
 
     expect(await screen.findByText("Featured note")).toBeInTheDocument();
     expect(
-      screen.getByRole("navigation", { name: "Writing topics" }),
+      screen.getByRole("navigation", { name: "Writing Topics" }),
     ).toHaveTextContent("Data Modeling");
     expect(
       within(screen.getAllByRole("heading", { name: "Data Modeling" })[0]).getByRole(

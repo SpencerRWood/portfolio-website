@@ -18,19 +18,20 @@ export interface ContactSubmissionResponse {
 export interface ContentPage {
   title: string;
   slug: string;
-  section: "topics" | "blog" | "projects";
+  section: "areas" | "blog" | "projects";
   summary: string;
   body_html: string;
   order: number;
-  topics: string[];
+  areas: string[];
   nav: boolean;
   featured: boolean;
   published: string | null;
   repository: string | null;
+  group: "Analytics" | "Engineering" | null;
 }
 
 export interface HomepageContent {
-  topics: ContentPage[];
+  areas: ContentPage[];
   blog: ContentPage[];
   projects: ContentPage[];
   homepage: Homepage;
@@ -46,9 +47,9 @@ export interface Homepage {
   primary_link_destination: string;
   aside_title: string;
   aside_summary: string;
-  topics_eyebrow: string;
-  topics_title: string;
-  topics_summary: string;
+  areas_eyebrow: string;
+  areas_title: string;
+  areas_summary: string;
   blog_eyebrow: string;
   blog_title: string;
   blog_summary: string;
@@ -67,7 +68,7 @@ export interface SiteNavigationItem {
 }
 
 export interface FooterNavigation {
-  topics_title: string;
+  areas_title: string;
   items: SiteNavigationItem[];
 }
 
@@ -143,7 +144,7 @@ export function getContentPage(
 }
 
 export function getSitePage(
-  slug: "topics" | "blog" | "projects" | "contact" | "about",
+  slug: "areas" | "blog" | "projects" | "contact" | "about",
   request: typeof fetch = fetch,
 ): Promise<SitePage> {
   return requestContent<SitePage>(`site/${slug}`, request);
@@ -164,12 +165,12 @@ export function getFooterNavigation(
 export async function getHomepageContent(
   request: typeof fetch = fetch,
 ): Promise<HomepageContent> {
-  const [topics, blog, projects, homepage, navigation] = await Promise.all([
-    requestContent<ContentPage[]>("topics", request),
+  const [areas, blog, projects, homepage, navigation] = await Promise.all([
+    requestContent<ContentPage[]>("areas", request),
     requestContent<ContentPage[]>("blog", request),
     requestContent<ContentPage[]>("projects", request),
     requestContent<Homepage>("site/homepage", request),
     requestContent<SiteNavigationItem[]>("navigation", request),
   ]);
-  return { topics, blog, projects, homepage, navigation };
+  return { areas, blog, projects, homepage, navigation };
 }

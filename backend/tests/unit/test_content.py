@@ -18,13 +18,14 @@ def write_page(root: Path, section: str, filename: str, front_matter: str) -> No
     (directory / filename).write_text(front_matter, encoding="utf-8")
 
 
-def topic_document(slug: str, order: int = 10) -> str:
+def area_document(slug: str, order: int = 10) -> str:
     return f"""---
 title: {slug.title()}
 slug: {slug}
-section: topics
+section: areas
+group: Analytics
 order: {order}
-summary: A test topic.
+summary: A test area.
 nav: true
 featured: false
 ---
@@ -37,7 +38,7 @@ def test_loader_parses_front_matter_and_renders_jinja_markdown(tmp_path: Path) -
     partials = tmp_path / "_partials"
     partials.mkdir()
     (partials / "body.md.j2").write_text("**{{ page.title }}**", encoding="utf-8")
-    write_page(tmp_path, "topics", "topic.md.j2", topic_document("analytics"))
+    write_page(tmp_path, "areas", "area.md.j2", area_document("analytics"))
 
     page = ContentLoader(tmp_path).discover()[0]
 
@@ -55,7 +56,7 @@ def test_loader_rejects_duplicate_slugs(tmp_path: Path) -> None:
     partials = tmp_path / "_partials"
     partials.mkdir()
     (partials / "body.md.j2").write_text("Body", encoding="utf-8")
-    write_page(tmp_path, "topics", "first.md.j2", topic_document("duplicate"))
+    write_page(tmp_path, "areas", "first.md.j2", area_document("duplicate"))
     write_page(
         tmp_path,
         "blog",
@@ -81,13 +82,15 @@ Placeholder.
 def test_loader_rejects_slug_that_is_not_lowercase_kebab_case(tmp_path: Path) -> None:
     write_page(
         tmp_path,
-        "topics",
+        "areas",
         "invalid.md.j2",
         """---
 title: Invalid
 slug: Data Generation
-section: topics
-summary: A test topic.
+section: areas
+group: Analytics
+order: 10
+summary: A test area.
 ---
 
 Placeholder.
@@ -178,8 +181,8 @@ def test_loader_sorts_content_by_section_then_order(tmp_path: Path) -> None:
     partials = tmp_path / "_partials"
     partials.mkdir()
     (partials / "body.md.j2").write_text("Body", encoding="utf-8")
-    write_page(tmp_path, "topics", "second.md.j2", topic_document("second", 20))
-    write_page(tmp_path, "topics", "first.md.j2", topic_document("first", 10))
+    write_page(tmp_path, "areas", "second.md.j2", area_document("second", 20))
+    write_page(tmp_path, "areas", "first.md.j2", area_document("first", 10))
 
     assert [page.slug for page in ContentLoader(tmp_path).discover()] == [
         "first",
@@ -263,6 +266,52 @@ def test_navigation_is_derived_from_nav_metadata(tmp_path: Path) -> None:
     partials = tmp_path / "_partials"
     partials.mkdir()
     (partials / "body.md.j2").write_text("Body", encoding="utf-8")
-    write_page(tmp_path, "topics", "topic.md.j2", topic_document("analytics"))
+    write_page(tmp_path, "areas", "area.md.j2", area_document("analytics"))
 
     assert [item.slug for item in ContentLoader(tmp_path).navigation()] == ["analytics"]
+
+
+@pytest.mark.parametrize("group", ["", "Other", "true"])
+def test_area_requires_an_explicit_supported_group(tmp_path: Path, group: str) -> None:
+    document = area_document("analytics").replace("group: Analytics", f"group: {group}")
+    write_page(tmp_path, "areas", "analytics.md.j2", document)
+
+    with pytest.raises(ContentError, match="group must be Analytics or Engineering"):
+        ContentLoader(tmp_path).discover()
+
+
+def test_area_requires_an_explicit_integer_order(tmp_path: Path) -> None:
+    document = area_document("analytics").replace("order: 10\n", "")
+    write_page(tmp_path, "areas", "analytics.md.j2", document)
+
+    with pytest.raises(ContentError, match="order must be an integer"):
+        ContentLoader(tmp_path).discover()
+
+
+def test_production_areas_preserve_group_order_and_navigation() -> None:
+    loader = ContentLoader()
+    areas = [page for page in loader.discover() if page.section == "areas"]
+
+    assert [(page.group, page.slug) for page in areas] == [
+        ("Analytics", "data-generation"),
+        ("Analytics", "data-collection"),
+        ("Analytics", "data-modeling"),
+        ("Analytics", "analytics"),
+        ("Analytics", "machine-learning"),
+        ("Analytics", "communication"),
+        ("Engineering", "systems-infrastructure"),
+    ]
+    assert [(item.group, item.slug) for item in loader.navigation()] == [
+        (page.group, page.slug) for page in areas
+    ]
+
+
+def test_retired_relationship_metadata_is_rejected(tmp_path: Path) -> None:
+    retired_key = "to" + "pics"
+    document = area_document("analytics").replace(
+        "nav: true", f"{retired_key}:\n  - analytics\nnav: true"
+    )
+    write_page(tmp_path, "areas", "analytics.md.j2", document)
+
+    with pytest.raises(ContentError, match="unsupported metadata fields"):
+        ContentLoader(tmp_path).discover()

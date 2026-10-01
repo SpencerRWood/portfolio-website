@@ -8,6 +8,8 @@ from pathlib import Path
 from typing import Any
 
 from portfolio_website.content.models import (
+    Area,
+    AreaGroup,
     BlogEntry,
     ContentPage,
     ContentSection,
@@ -17,11 +19,10 @@ from portfolio_website.content.models import (
     Project,
     SiteNavigationItem,
     SitePage,
-    Topic,
 )
 from portfolio_website.content.renderer import render_document, render_markdown
 
-CONTENT_SECTIONS: tuple[ContentSection, ...] = ("topics", "blog", "projects")
+CONTENT_SECTIONS: tuple[ContentSection, ...] = ("areas", "blog", "projects")
 CONTENT_ROOT = Path(__file__).parent
 SLUG_PATTERN = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
 
@@ -92,15 +93,15 @@ def _optional_bool(metadata: dict[str, Any], field: str, path: Path) -> bool:
     return value
 
 
-def _optional_topics(metadata: dict[str, Any], path: Path) -> tuple[str, ...]:
-    value = metadata.get("topics", [])
+def _optional_areas(metadata: dict[str, Any], path: Path) -> tuple[str, ...]:
+    value = metadata.get("areas", [])
     if not isinstance(value, list) or not all(isinstance(item, str) for item in value):
-        raise ContentError(f"{path}: topics must be a list of slugs.")
+        raise ContentError(f"{path}: areas must be a list of slugs.")
     return tuple(value)
 
 
 def _page_type(section: ContentSection) -> type[ContentPage]:
-    return {"topics": Topic, "blog": BlogEntry, "projects": Project}[section]
+    return {"areas": Area, "blog": BlogEntry, "projects": Project}[section]
 
 
 class ContentLoader:
@@ -137,9 +138,9 @@ class ContentLoader:
         return sorted(rendered, key=self._sort_key)
 
     def navigation(self) -> list[NavigationItem]:
-        """Return topic navigation derived from pages that opt into it."""
+        """Return area navigation derived from pages that opt into it."""
         return [
-            NavigationItem(page.title, page.slug, page.section, page.order)
+            NavigationItem(page.title, page.slug, page.section, page.order, page.group)
             for page in self.discover()
             if page.nav
         ]
@@ -147,14 +148,34 @@ class ContentLoader:
     def _page_from_metadata(
         self, path: Path, expected_section: ContentSection, metadata: dict[str, Any]
     ) -> ContentPage:
+        unknown_fields = metadata.keys() - (
+            ContentPage.__dataclass_fields__.keys() - {"body_html"}
+        )
+        if unknown_fields:
+            raise ContentError(
+                f"{path}: unsupported metadata fields: {sorted(unknown_fields)}."
+            )
         section = _required_string(metadata, "section", path)
         if section not in CONTENT_SECTIONS:
             raise ContentError(f"{path}: section must be one of {CONTENT_SECTIONS}.")
         typed_section: ContentSection = section
         if typed_section != expected_section:
             raise ContentError(f"{path}: section does not match its directory.")
-        order = metadata.get("order", 0)
-        if not isinstance(order, int):
+        group: AreaGroup | None = None
+        if typed_section == "areas":
+            group_value = metadata.get("group")
+            if not isinstance(group_value, str) or group_value not in {
+                "Analytics",
+                "Engineering",
+            }:
+                raise ContentError(f"{path}: group must be Analytics or Engineering.")
+            group = "Analytics" if group_value == "Analytics" else "Engineering"
+        order = (
+            metadata.get("order")
+            if typed_section == "areas"
+            else metadata.get("order", 0)
+        )
+        if type(order) is not int:
             raise ContentError(f"{path}: order must be an integer.")
         published_value = metadata.get("published")
         try:
@@ -172,34 +193,35 @@ class ContentLoader:
             summary=_required_string(metadata, "summary", path),
             body_html="",
             order=order,
-            topics=_optional_topics(metadata, path),
+            areas=_optional_areas(metadata, path),
             nav=_optional_bool(metadata, "nav", path),
             featured=_optional_bool(metadata, "featured", path),
             published=published,
             repository=repository,
+            group=group,
         )
 
     @staticmethod
     def _template_context(
         page: ContentPage, pages: list[ContentPage]
     ) -> dict[str, Any]:
-        related_topics = [
+        related_areas = [
             item
             for item in pages
-            if item.section == "topics" and item.slug in page.topics
+            if item.section == "areas" and item.slug in page.areas
         ]
         return {
             "page": page,
-            "related_topics": related_topics,
+            "related_areas": related_areas,
             "related_blog": [
                 item
                 for item in pages
-                if item.section == "blog" and page.slug in item.topics
+                if item.section == "blog" and page.slug in item.areas
             ],
             "related_projects": [
                 item
                 for item in pages
-                if item.section == "projects" and page.slug in item.topics
+                if item.section == "projects" and page.slug in item.areas
             ],
         }
 
@@ -209,7 +231,8 @@ class ContentLoader:
         if page.section == "blog":
             published_rank = page.published.toordinal() if page.published else -1
             return (page.section, 0, -published_rank, page.order, page.title)
-        return (page.section, 1, 0, page.order, page.title)
+        group_rank = 0 if page.group == "Analytics" else 1
+        return (page.section, group_rank, 0, page.order, page.title)
 
     @staticmethod
     def _validate_unique_slugs(pages: Iterable[ContentPage]) -> None:
@@ -269,11 +292,11 @@ def load_site_navigation() -> list[SiteNavigationItem]:
 
 
 def load_footer_navigation() -> FooterNavigation:
-    """Load footer navigation and its topic-column label from content."""
+    """Load footer navigation and its area-column label from content."""
     path = CONTENT_ROOT / "_partials" / "footer.md.j2"
     metadata, _ = parse_front_matter(path.read_text(encoding="utf-8"), path)
     return FooterNavigation(
-        topics_title=_required_string(metadata, "topics_title", path),
+        areas_title=_required_string(metadata, "areas_title", path),
         items=tuple(_navigation_items(metadata, path)),
     )
 

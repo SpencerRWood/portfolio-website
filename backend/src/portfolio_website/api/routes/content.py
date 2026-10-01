@@ -42,9 +42,9 @@ def read_footer_navigation() -> FooterNavigation:
     return load_footer_navigation()
 
 
-@router.get("/topics/navigation")
-def read_topic_navigation() -> list[NavigationItem]:
-    """Return topic index navigation derived from content metadata."""
+@router.get("/areas/navigation")
+def read_area_navigation() -> list[NavigationItem]:
+    """Return area index navigation derived from content metadata."""
     return ContentLoader().navigation()
 
 
@@ -56,16 +56,16 @@ def read_homepage() -> Homepage:
 
 @router.get("/site/{slug}")
 def read_site_page(
-    slug: Literal["topics", "blog", "projects", "contact", "about"],
+    slug: Literal["areas", "blog", "projects", "contact", "about"],
 ) -> SitePage:
-    """Return one authored stable page such as the Topics index introduction."""
+    """Return one authored stable page such as the Areas index introduction."""
     return load_site_page(slug)
 
 
-@router.get("/topics")
-def read_topics() -> list[ContentPage]:
-    """Return all topic pages."""
-    return pages_for("topics")
+@router.get("/areas")
+def read_areas() -> list[ContentPage]:
+    """Return all area pages."""
+    return pages_for("areas")
 
 
 @router.get("/blog")
@@ -82,7 +82,7 @@ def read_projects() -> list[ContentPage]:
 
 @router.get("/{section}/{slug}")
 def read_content_page(
-    section: Literal["topics", "blog", "projects"], slug: str
+    section: Literal["areas", "blog", "projects"], slug: str
 ) -> ContentPage:
     """Return a single page without exposing content filesystem details."""
     for page in pages_for(section):
