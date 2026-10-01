@@ -2,6 +2,31 @@
 
 <!-- version list -->
 
+## v0.9.1 (2026-09-29)
+
+### Bug Fixes
+
+- Remove vertical background lines
+  ([`ff9e3f1`](https://github.com/SpencerRWood/portfolio-website/commit/ff9e3f16466accb26f1db73d8e33f09d91dc1c4b))
+
+
+## v0.9.0 (2026-09-26)
+
+### Features
+
+- **dev**: Launch with Infisical secrets
+  ([`e333e14`](https://github.com/SpencerRWood/portfolio-website/commit/e333e145ce8065d85b91d48d620230b14f430c46))
+
+
+## v0.8.4 (2026-09-23)
+
+### Bug Fixes
+
+- **ci**: Adopt v2 container promotion contract
+  ([#15](https://github.com/SpencerRWood/portfolio-website/pull/15),
+  [`fafb78c`](https://github.com/SpencerRWood/portfolio-website/commit/fafb78c88561a43035028524dc7f579ef35585a1))
+
+
 ## v0.8.3 (2026-09-23)
 
 ### Bug Fixes
