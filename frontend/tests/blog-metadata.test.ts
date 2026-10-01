@@ -12,6 +12,7 @@ function post(slug: string, featured: boolean): ContentPage {
     body_html: "",
     order: 0,
     areas: [],
+    related_content: [],
     group: null,
     nav: false,
     featured,

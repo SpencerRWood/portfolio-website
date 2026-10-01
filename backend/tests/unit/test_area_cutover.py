@@ -1,4 +1,4 @@
-"""Keep the retired content taxonomy out of active repository files."""
+"""Keep retired internal taxonomy names out while allowing public Topics routes."""
 
 import re
 import subprocess
@@ -23,7 +23,7 @@ def test_active_repository_files_use_current_content_terminology() -> None:
     )
     stem = "to" + "pic"
     retired = re.compile(
-        rf"\b(?:{stem}\w*|{stem.title()}(?!s\b)\w*|\w+_{stem}\w*|\w+{stem.title()}\w*)\b"
+        rf"\b(?:{stem}(?!s\b)\w*|{stem.title()}(?!s\b)\w*|\w+_{stem}\w*|\w+{stem.title()}\w*)\b"
     )
     findings = []
     for relative in result.stdout.split("\0"):

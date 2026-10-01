@@ -67,11 +67,11 @@ describe("content API client", () => {
     });
     expect(request).toHaveBeenNthCalledWith(
       1,
-      "http://localhost:8000/content/site/areas",
+      "http://localhost:8000/content/site/topics",
     );
     expect(request).toHaveBeenNthCalledWith(
       2,
-      "http://localhost:8000/content/areas/data-modeling",
+      "http://localhost:8000/content/topics/data-modeling",
     );
   });
 
@@ -87,7 +87,7 @@ describe("content API client", () => {
       homepage: [],
       navigation: [],
     });
-    expect(request).toHaveBeenNthCalledWith(1, "http://localhost:8000/content/areas");
+    expect(request).toHaveBeenNthCalledWith(1, "http://localhost:8000/content/topics");
     expect(request).toHaveBeenNthCalledWith(2, "http://localhost:8000/content/blog");
     expect(request).toHaveBeenNthCalledWith(
       3,

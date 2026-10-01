@@ -1,0 +1,7 @@
+{% if related_content %}
+## Related content
+
+{% for item in related_content %}
+- [{{ item.title }}](/{{ 'topics' if item.section == 'areas' else item.section }}/{{ item.slug }})
+{% endfor %}
+{% endif %}

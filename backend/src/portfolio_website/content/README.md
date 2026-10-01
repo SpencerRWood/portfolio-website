@@ -10,19 +10,26 @@ Every document is a `.md.j2` file with front matter. At render time, content
 templates receive only these explicit values:
 
 - `page`: the current page's validated metadata.
-- `related_areas`: Areas named by the page's `areas` front-matter field.
-- `related_blog`: Blog entries related to an Area page.
-- `related_projects`: Projects related to an Area page.
+- `related_content`: derived references with title, slug, section, and summary.
+  Area pages link to Writing and Projects that declare their slug in `areas`;
+  Writing and Project pages link back to their declared Areas. References follow
+  the same deterministic ordering as section indexes. The API exposes these same
+  references for the shared React related-content component; do not author them
+  in front matter. Unknown or duplicate Area references fail content validation.
+  Area pages cannot declare Area associations themselves.
 
 Area documents require `group: Analytics` or `group: Engineering` and an integer
 `order`. Analytics renders before Engineering; pages within each group sort by
 order, then title. Analytics retains the sequence Data Generation, Data Collection,
 Data Modeling, Analytics, Machine Learning, Communication. Engineering initially
-contains Systems & Infrastructure. The homepage and `/areas` index use these groups.
+contains Systems & Infrastructure. The homepage and `/topics` index use these groups.
 
-Area routes use `/areas` and `/areas/{slug}`. Writing remains under `/blog`.
+Public Area routes use `/topics` and `/topics/{slug}`. Content API routes use
+`/content/topics`, `/content/topics/{slug}`, `/content/topics/navigation`, and
+`/content/site/topics`. Writing remains under `/blog`.
 Public navigation and headings call these entries Topics; backend types, metadata
-keys, relationship fields, and routes use Areas.
+keys, and relationship fields use Areas. API payload sections and authored site
+slugs retain `areas`; route mapping does not rename editorial metadata.
 The repository terminology check runs with the backend tests; historical changelog
 entries are exempt because they describe earlier releases.
 

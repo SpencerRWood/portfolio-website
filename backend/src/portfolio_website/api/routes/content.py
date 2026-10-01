@@ -42,7 +42,7 @@ def read_footer_navigation() -> FooterNavigation:
     return load_footer_navigation()
 
 
-@router.get("/areas/navigation")
+@router.get("/topics/navigation")
 def read_area_navigation() -> list[NavigationItem]:
     """Return area index navigation derived from content metadata."""
     return ContentLoader().navigation()
@@ -56,13 +56,13 @@ def read_homepage() -> Homepage:
 
 @router.get("/site/{slug}")
 def read_site_page(
-    slug: Literal["areas", "blog", "projects", "contact", "about"],
+    slug: Literal["topics", "blog", "projects", "contact", "about"],
 ) -> SitePage:
     """Return one authored stable page such as the Areas index introduction."""
-    return load_site_page(slug)
+    return load_site_page("areas" if slug == "topics" else slug)
 
 
-@router.get("/areas")
+@router.get("/topics")
 def read_areas() -> list[ContentPage]:
     """Return all area pages."""
     return pages_for("areas")
@@ -82,10 +82,10 @@ def read_projects() -> list[ContentPage]:
 
 @router.get("/{section}/{slug}")
 def read_content_page(
-    section: Literal["areas", "blog", "projects"], slug: str
+    section: Literal["topics", "blog", "projects"], slug: str
 ) -> ContentPage:
     """Return a single page without exposing content filesystem details."""
-    for page in pages_for(section):
+    for page in pages_for("areas" if section == "topics" else section):
         if page.slug == slug:
             return page
     raise HTTPException(

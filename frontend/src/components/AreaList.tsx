@@ -38,14 +38,14 @@ export function AreaList({ areas, source }: AreaListProps) {
                   <h3 className="font-display text-2xl font-semibold tracking-[-0.035em] md:text-3xl">
                     <a
                       className="transition-colors hover:text-black/55 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-black"
-                      href={`/areas/${area.slug}`}
+                      href={`/topics/${area.slug}`}
                       onClick={() =>
                         trackClick({
                           ...source,
                           targetType: "internal_page",
                           targetPageType: "area",
                           targetSlug: area.slug,
-                          destination: `/areas/${area.slug}`,
+                          destination: `/topics/${area.slug}`,
                         })
                       }
                     >

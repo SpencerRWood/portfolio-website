@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
@@ -9,9 +9,11 @@ const mocks = vi.hoisted(() => ({
   getSiteNavigation: vi.fn(),
   getSitePage: vi.fn(),
   trackPageView: vi.fn(),
+  trackClick: vi.fn(),
 }));
 
 vi.mock("../src/api/client", () => ({
+  contentSectionPath: (section: string) => (section === "areas" ? "topics" : section),
   getContentIndex: mocks.getContentIndex,
   getContentPage: mocks.getContentPage,
   getFooterNavigation: mocks.getFooterNavigation,
@@ -23,6 +25,7 @@ vi.mock("../src/api/client", () => ({
 vi.mock("../src/analytics/events", async (importOriginal) => ({
   ...(await importOriginal<typeof import("../src/analytics/events")>()),
   trackPageView: mocks.trackPageView,
+  trackClick: mocks.trackClick,
 }));
 
 import { ArticlePage, SectionIndexPage, StaticPage } from "../src/pages/ContentPages";
@@ -41,6 +44,7 @@ function contentPage(
     body_html: "<p>Article body.</p>",
     order: 1,
     areas: [],
+    related_content: [],
     nav: false,
     featured: false,
     published: section === "blog" ? "2026-09-18" : null,
@@ -66,6 +70,43 @@ beforeEach(() => {
 });
 
 describe("content-driven page analytics", () => {
+  it.each([
+    ["areas", "area", "blog", "blog_article", "Related Writing"],
+    ["areas", "area", "projects", "project", "Related Projects"],
+    ["blog", "blog_article", "areas", "area", "Related Topics"],
+    ["projects", "project", "areas", "area", "Related Topics"],
+  ] as const)(
+    "renders and tracks %s relationships to %s",
+    async (section, sourceType, targetSection, targetType, label) => {
+      mocks.getContentPage.mockResolvedValue({
+        ...contentPage(section, "source", "Source page"),
+        related_content: [
+          {
+            title: "Related page",
+            slug: "target",
+            section: targetSection,
+            summary: "A related summary.",
+          },
+        ],
+      });
+      render(<ArticlePage section={section} path={section} slug="source" />);
+      const region = await screen.findByRole("region", { name: label });
+      const link = within(region).getByRole("link", { name: "Related page" });
+      const targetPath = targetSection === "areas" ? "topics" : targetSection;
+      expect(link).toHaveAttribute("href", `/${targetPath}/target`);
+      expect(region).toHaveTextContent("A related summary.");
+      fireEvent.click(link);
+      expect(mocks.trackClick).toHaveBeenCalledWith({
+        sourcePageType: sourceType,
+        sourcePageSlug: "source",
+        targetType: "internal_page",
+        targetPageType: targetType,
+        targetSlug: "target",
+        destination: `/${targetPath}/target`,
+      });
+    },
+  );
+
   it.each([
     [
       "blog",
@@ -134,7 +175,7 @@ describe("content-driven page analytics", () => {
         title: "How analytical systems are built",
         summary: "Notes.",
         primary_link_label: "Explore Topics",
-        primary_link_destination: "/areas",
+        primary_link_destination: "/topics",
         aside_title: "Topics",
         aside_summary: "Data systems.",
         areas_eyebrow: "Topics",

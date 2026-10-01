@@ -14,7 +14,7 @@ export function AreaLinks({ areas, slugs, source }: AreaLinksProps) {
         <li key={slug}>
           <a
             className="font-mono text-[0.68rem] tracking-[0.1em] text-black/55 uppercase transition-colors hover:text-black focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-black"
-            href={`/areas/${slug}`}
+            href={`/topics/${slug}`}
             onClick={() =>
               source &&
               trackClick({
@@ -22,7 +22,7 @@ export function AreaLinks({ areas, slugs, source }: AreaLinksProps) {
                 targetType: "internal_page",
                 targetPageType: "area",
                 targetSlug: slug,
-                destination: `/areas/${slug}`,
+                destination: `/topics/${slug}`,
               })
             }
           >
