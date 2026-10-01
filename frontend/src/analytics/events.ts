@@ -19,6 +19,12 @@ type EventProperties = Record<string, string>;
 export type PageType =
   "home" | "section_index" | "blog_article" | "area" | "project" | "static_page";
 
+export function contentPageType(section: "areas" | "blog" | "projects"): PageType {
+  if (section === "blog") return "blog_article";
+  if (section === "areas") return "area";
+  return "project";
+}
+
 export interface PageViewProperties {
   pageType: PageType;
   pageSlug: string;

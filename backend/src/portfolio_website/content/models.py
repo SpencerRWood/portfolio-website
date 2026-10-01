@@ -9,6 +9,16 @@ AreaGroup = Literal["Analytics", "Engineering"]
 
 
 @dataclass(frozen=True)
+class ContentReference:
+    """A derived link to related content, without recursive page bodies."""
+
+    title: str
+    slug: str
+    section: ContentSection
+    summary: str
+
+
+@dataclass(frozen=True)
 class ContentPage:
     """A rendered page and the metadata needed to index it."""
 
@@ -26,6 +36,7 @@ class ContentPage:
     published: date | None = None
     repository: str | None = None
     group: AreaGroup | None = None
+    related_content: tuple[ContentReference, ...] = ()
 
 
 @dataclass(frozen=True)

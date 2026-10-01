@@ -31,7 +31,7 @@ export function SiteFooter({
             <div>
               <a
                 className="font-mono text-xs tracking-[0.12em] uppercase transition-colors hover:text-black/55"
-                href="/areas"
+                href="/topics"
                 onClick={() =>
                   source &&
                   trackClick({
@@ -39,7 +39,7 @@ export function SiteFooter({
                     targetType: "internal_page",
                     targetPageType: "section_index",
                     targetSlug: "areas",
-                    destination: "/areas",
+                    destination: "/topics",
                   })
                 }
               >
@@ -50,7 +50,7 @@ export function SiteFooter({
                   <li key={area.slug}>
                     <a
                       className="text-sm leading-5 text-black/45 transition-colors hover:text-black focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-black"
-                      href={`/areas/${area.slug}`}
+                      href={`/topics/${area.slug}`}
                       onClick={() =>
                         source &&
                         trackClick({
@@ -58,7 +58,7 @@ export function SiteFooter({
                           targetType: "internal_page",
                           targetPageType: "area",
                           targetSlug: area.slug,
-                          destination: `/areas/${area.slug}`,
+                          destination: `/topics/${area.slug}`,
                         })
                       }
                     >

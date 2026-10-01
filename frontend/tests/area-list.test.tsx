@@ -22,6 +22,7 @@ function area(
     summary: title,
     body_html: "",
     areas: [],
+    related_content: [],
     nav: true,
     featured: false,
     published: null,
@@ -69,14 +70,14 @@ describe("grouped area navigation", () => {
     const engineering = within(
       screen.getByRole("region", { name: "Engineering" }),
     ).getByRole("link");
-    expect(engineering).toHaveAttribute("href", "/areas/systems-infrastructure");
+    expect(engineering).toHaveAttribute("href", "/topics/systems-infrastructure");
     fireEvent.click(engineering);
     expect(trackClick).toHaveBeenCalledWith({
       ...source,
       targetType: "internal_page",
       targetPageType: "area",
       targetSlug: "systems-infrastructure",
-      destination: "/areas/systems-infrastructure",
+      destination: "/topics/systems-infrastructure",
     });
   });
 });

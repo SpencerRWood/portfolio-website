@@ -80,13 +80,13 @@ export function HomePage() {
           </p>
           <a
             className="mt-9 inline-flex items-center gap-3 bg-black px-5 py-3 font-mono text-xs tracking-[0.1em] text-white uppercase transition-colors hover:bg-black/75 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-black"
-            href={homepage?.primary_link_destination ?? "/areas"}
+            href={homepage?.primary_link_destination ?? "/topics"}
             onClick={() =>
               trackClick({
                 sourcePageType: "home",
                 sourcePageSlug: "home",
                 targetType: "internal_page",
-                destination: homepage?.primary_link_destination ?? "/areas",
+                destination: homepage?.primary_link_destination ?? "/topics",
               })
             }
           >

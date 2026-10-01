@@ -47,7 +47,7 @@ vi.mock("../src/api/client", async (importOriginal) => {
         title: "How analytical systems are built",
         summary: "Notes.",
         primary_link_label: "Explore Topics",
-        primary_link_destination: "areas",
+        primary_link_destination: "/topics",
         aside_title: "Topics",
         aside_summary: "Data systems.",
         areas_eyebrow: "01 / Topics",
@@ -64,7 +64,7 @@ vi.mock("../src/api/client", async (importOriginal) => {
         about_summary: "About Spencer Wood.",
       },
       navigation: [
-        { title: "Topics", destination: "areas", order: 1 },
+        { title: "Topics", destination: "/topics", order: 1 },
         { title: "Blog", destination: "/blog", order: 2 },
         { title: "Projects", destination: "projects", order: 3 },
         { title: "Contact", destination: "/contact", order: 4 },
@@ -73,7 +73,7 @@ vi.mock("../src/api/client", async (importOriginal) => {
     }),
     getSiteNavigation: vi
       .fn()
-      .mockResolvedValue([{ title: "Topics", destination: "/areas", order: 1 }]),
+      .mockResolvedValue([{ title: "Topics", destination: "/topics", order: 1 }]),
     getFooterNavigation: vi.fn().mockResolvedValue({
       areas_title: "Topics",
       items: [
@@ -110,6 +110,8 @@ vi.mock("../src/api/client", async (importOriginal) => {
       },
     ]),
     getContentPage: vi.fn().mockResolvedValue({
+      section: "areas",
+      related_content: [],
       title: "Data Modeling",
       slug: "data-modeling",
       summary: "How data is represented.",
@@ -166,11 +168,11 @@ describe("App", () => {
     expect(footer).toHaveTextContent("Blog");
     expect(
       within(footer).getByRole("link", { name: "Data Generation" }),
-    ).toHaveAttribute("href", "/areas/data-generation");
+    ).toHaveAttribute("href", "/topics/data-generation");
   });
 
   it("routes area indexes and area articles to dedicated pages", async () => {
-    window.history.pushState({}, "", "/areas");
+    window.history.pushState({}, "", "/topics");
     const { unmount } = render(<App />);
     expect(await screen.findByRole("heading", { name: "Topics" })).toBeInTheDocument();
     expect(screen.getByRole("region", { name: "Analytics" })).toHaveTextContent(
@@ -181,13 +183,17 @@ describe("App", () => {
     );
     expect(screen.getAllByRole("link", { name: "Data Modeling" })[0]).toHaveAttribute(
       "href",
-      "/areas/data-modeling",
+      "/topics/data-modeling",
     );
     unmount();
 
-    window.history.pushState({}, "", "/areas/data-modeling");
+    window.history.pushState({}, "", "/topics/data-modeling");
     render(<App />);
     expect(await screen.findByText("Article body.")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "← Topics" })).toHaveAttribute(
+      "href",
+      "/topics",
+    );
     window.history.pushState({}, "", "/");
   });
 
@@ -202,7 +208,7 @@ describe("App", () => {
     );
   });
 
-  it.each([`/${"to" + "pics"}`, `/${"to" + "pics"}/data-modeling`])(
+  it.each(["/areas", "/areas/data-modeling"])(
     "rejects the retired route %s",
     (path) => {
       window.history.pushState({}, "", path);

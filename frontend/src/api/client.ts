@@ -15,7 +15,18 @@ export interface ContactSubmissionResponse {
   status: "accepted";
 }
 
-export interface ContentPage {
+export interface ContentReference {
+  title: string;
+  slug: string;
+  section: "areas" | "blog" | "projects";
+  summary: string;
+}
+
+export function contentSectionPath(section: ContentReference["section"]): string {
+  return section === "areas" ? "topics" : section;
+}
+
+export interface ContentPage extends ContentReference {
   title: string;
   slug: string;
   section: "areas" | "blog" | "projects";
@@ -28,6 +39,7 @@ export interface ContentPage {
   published: string | null;
   repository: string | null;
   group: "Analytics" | "Engineering" | null;
+  related_content: ContentReference[];
 }
 
 export interface HomepageContent {
@@ -132,7 +144,7 @@ export function getContentIndex(
   section: ContentPage["section"],
   request: typeof fetch = fetch,
 ): Promise<ContentPage[]> {
-  return requestContent<ContentPage[]>(section, request);
+  return requestContent<ContentPage[]>(contentSectionPath(section), request);
 }
 
 export function getContentPage(
@@ -140,14 +152,17 @@ export function getContentPage(
   slug: string,
   request: typeof fetch = fetch,
 ): Promise<ContentPage> {
-  return requestContent<ContentPage>(`${section}/${slug}`, request);
+  return requestContent<ContentPage>(`${contentSectionPath(section)}/${slug}`, request);
 }
 
 export function getSitePage(
   slug: "areas" | "blog" | "projects" | "contact" | "about",
   request: typeof fetch = fetch,
 ): Promise<SitePage> {
-  return requestContent<SitePage>(`site/${slug}`, request);
+  return requestContent<SitePage>(
+    `site/${slug === "areas" ? "topics" : slug}`,
+    request,
+  );
 }
 
 export function getSiteNavigation(
@@ -166,7 +181,7 @@ export async function getHomepageContent(
   request: typeof fetch = fetch,
 ): Promise<HomepageContent> {
   const [areas, blog, projects, homepage, navigation] = await Promise.all([
-    requestContent<ContentPage[]>("areas", request),
+    getContentIndex("areas", request),
     requestContent<ContentPage[]>("blog", request),
     requestContent<ContentPage[]>("projects", request),
     requestContent<Homepage>("site/homepage", request),

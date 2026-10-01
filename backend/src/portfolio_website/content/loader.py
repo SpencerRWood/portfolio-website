@@ -12,6 +12,7 @@ from portfolio_website.content.models import (
     AreaGroup,
     BlogEntry,
     ContentPage,
+    ContentReference,
     ContentSection,
     FooterNavigation,
     Homepage,
@@ -122,6 +123,11 @@ class ContentLoader:
             for path, section, metadata, _ in documents
         ]
         self._validate_unique_slugs(pages)
+        self._validate_area_references(pages)
+        pages = [
+            replace(page, related_content=self._related_content(page, pages))
+            for page in pages
+        ]
         rendered = [
             replace(
                 page,
@@ -129,7 +135,7 @@ class ContentLoader:
                     render_document(
                         markdown_source,
                         self.content_root,
-                        self._template_context(page, pages),
+                        self._template_context(page),
                     )
                 ),
             )
@@ -149,7 +155,7 @@ class ContentLoader:
         self, path: Path, expected_section: ContentSection, metadata: dict[str, Any]
     ) -> ContentPage:
         unknown_fields = metadata.keys() - (
-            ContentPage.__dataclass_fields__.keys() - {"body_html"}
+            ContentPage.__dataclass_fields__.keys() - {"body_html", "related_content"}
         )
         if unknown_fields:
             raise ContentError(
@@ -202,28 +208,45 @@ class ContentLoader:
         )
 
     @staticmethod
-    def _template_context(
-        page: ContentPage, pages: list[ContentPage]
-    ) -> dict[str, Any]:
-        related_areas = [
-            item
-            for item in pages
-            if item.section == "areas" and item.slug in page.areas
-        ]
+    def _template_context(page: ContentPage) -> dict[str, Any]:
         return {
             "page": page,
-            "related_areas": related_areas,
-            "related_blog": [
-                item
-                for item in pages
-                if item.section == "blog" and page.slug in item.areas
-            ],
-            "related_projects": [
-                item
-                for item in pages
-                if item.section == "projects" and page.slug in item.areas
-            ],
+            "related_content": page.related_content,
         }
+
+    @classmethod
+    def _related_content(
+        cls, page: ContentPage, pages: list[ContentPage]
+    ) -> tuple[ContentReference, ...]:
+        related = (
+            [
+                item
+                for item in pages
+                if item.section in {"blog", "projects"} and page.slug in item.areas
+            ]
+            if page.section == "areas"
+            else [
+                item
+                for item in pages
+                if item.section == "areas" and item.slug in page.areas
+            ]
+        )
+        return tuple(
+            ContentReference(item.title, item.slug, item.section, item.summary)
+            for item in sorted(related, key=cls._sort_key)
+        )
+
+    @staticmethod
+    def _validate_area_references(pages: list[ContentPage]) -> None:
+        area_slugs = {page.slug for page in pages if page.section == "areas"}
+        for page in pages:
+            if page.section == "areas" and page.areas:
+                raise ContentError(f"{page.slug}: Area pages cannot declare areas.")
+            if len(page.areas) != len(set(page.areas)):
+                raise ContentError(f"{page.slug}: duplicate Area references.")
+            for slug in page.areas:
+                if slug not in area_slugs:
+                    raise ContentError(f"{page.slug}: unknown Area reference: {slug}.")
 
     @staticmethod
     def _sort_key(page: ContentPage) -> tuple[str, int, int, int, str]:

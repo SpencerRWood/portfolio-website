@@ -9,7 +9,8 @@ import {
   type SiteNavigationItem,
   type SitePage,
 } from "../api/client";
-import { trackClick, trackPageView, type PageType } from "../analytics/events";
+import { trackClick, trackPageView, contentPageType } from "../analytics/events";
+import { RelatedContent } from "../components/RelatedContent";
 import { ContactForm } from "../components/ContactForm";
 import { AreaList } from "../components/AreaList";
 import { BlogArticle } from "../components/blog/BlogArticle";
@@ -18,12 +19,6 @@ import { SiteLayout } from "../components/layout/SiteLayout";
 
 type Section = ContentPage["section"];
 type SiteSlug = "areas" | "blog" | "projects" | "contact" | "about";
-
-function contentPageType(section: Section): PageType {
-  if (section === "blog") return "blog_article";
-  if (section === "areas") return "area";
-  return "project";
-}
 
 function useNavigation() {
   const [navigation, setNavigation] = useState<SiteNavigationItem[]>([]);
@@ -57,7 +52,7 @@ function Intro({ page }: { page: SitePage }) {
   return (
     <>
       <p className="font-mono text-xs tracking-[0.16em] text-black/55 uppercase">
-        {page.slug}
+        {page.slug === "areas" ? "Topics" : page.slug}
       </p>
       <h1 className="font-display mt-5 text-5xl leading-[0.94] font-semibold tracking-[-0.055em] md:text-7xl">
         {page.title}
@@ -225,7 +220,7 @@ export function ArticlePage({
               })
             }
           >
-            ← {path}
+            ← {section === "areas" ? "Topics" : path}
           </a>
           <h1 className="font-display mt-8 text-5xl leading-[0.94] font-semibold tracking-[-0.055em] md:text-7xl">
             {page.title}
@@ -252,6 +247,7 @@ export function ArticlePage({
               View repository ↗
             </a>
           ) : null}
+          <RelatedContent page={page} />
         </article>
       ) : (
         <LoadingOrError error={error} />

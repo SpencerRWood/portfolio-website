@@ -3,6 +3,7 @@ import type { ContentPage } from "../../api/client";
 import { formatPublishedDate } from "./blogMetadata";
 import { AreaLinks } from "./AreaLinks";
 import { trackClick } from "../../analytics/events";
+import { RelatedContent } from "../RelatedContent";
 
 export function BlogArticle({
   page,
@@ -62,16 +63,7 @@ export function BlogArticle({
       </div>
 
       <footer className="mt-16 border-t border-black/20 pt-8 md:mt-20">
-        <p className="font-mono text-[0.68rem] tracking-[0.14em] text-black/55 uppercase">
-          Filed under
-        </p>
-        <div className="mt-3">
-          <AreaLinks
-            areas={areas}
-            slugs={page.areas}
-            source={{ sourcePageType: "blog_article", sourcePageSlug: page.slug }}
-          />
-        </div>
+        <RelatedContent page={page} />
         <div className="mt-8 flex flex-wrap gap-x-6 gap-y-4">
           {page.repository ? (
             <a
