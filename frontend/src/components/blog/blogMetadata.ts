@@ -13,11 +13,9 @@ export function formatPublishedDate(value: string | null | undefined): string {
   }).format(new Date(`${value}T00:00:00`));
 }
 
-export function topicName(
+export function areaName(
   slug: string,
-  topics: { slug: string; title: string }[],
+  areas: { slug: string; title: string }[],
 ): string {
-  return (
-    topics.find((topic) => topic.slug === slug)?.title ?? slug.replaceAll("-", " ")
-  );
+  return areas.find((area) => area.slug === slug)?.title ?? slug.replaceAll("-", " ");
 }

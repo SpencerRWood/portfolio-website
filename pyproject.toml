@@ -1,0 +1,6 @@
+[tool.wood.openproject]
+project_id = 5
+initiative_id = 436
+
+[tool.wood.workflow]
+output_directory = "/private/tmp"

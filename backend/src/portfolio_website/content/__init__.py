@@ -2,19 +2,19 @@
 
 from portfolio_website.content.loader import ContentLoader, load_site_content
 from portfolio_website.content.models import (
+    Area,
     BlogEntry,
     ContentPage,
     NavigationItem,
     Project,
-    Topic,
 )
 
 __all__ = [
+    "Area",
     "BlogEntry",
     "ContentLoader",
     "ContentPage",
     "NavigationItem",
     "Project",
-    "Topic",
     "load_site_content",
 ]

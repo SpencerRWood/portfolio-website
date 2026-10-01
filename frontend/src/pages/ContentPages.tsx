@@ -11,16 +11,17 @@ import {
 } from "../api/client";
 import { trackClick, trackPageView, type PageType } from "../analytics/events";
 import { ContactForm } from "../components/ContactForm";
+import { AreaList } from "../components/AreaList";
 import { BlogArticle } from "../components/blog/BlogArticle";
 import { BlogIndex } from "../components/blog/BlogIndex";
 import { SiteLayout } from "../components/layout/SiteLayout";
 
 type Section = ContentPage["section"];
-type SiteSlug = "topics" | "blog" | "projects" | "contact" | "about";
+type SiteSlug = "areas" | "blog" | "projects" | "contact" | "about";
 
 function contentPageType(section: Section): PageType {
   if (section === "blog") return "blog_article";
-  if (section === "topics") return "topic";
+  if (section === "areas") return "area";
   return "project";
 }
 
@@ -34,14 +35,14 @@ function useNavigation() {
   return navigation;
 }
 
-function useTopics() {
-  const [topics, setTopics] = useState<ContentPage[]>([]);
+function useAreas() {
+  const [areas, setAreas] = useState<ContentPage[]>([]);
 
   useEffect(() => {
-    void getContentIndex("topics").then(setTopics);
+    void getContentIndex("areas").then(setAreas);
   }, []);
 
-  return topics;
+  return areas;
 }
 
 function LoadingOrError({ error }: { error: boolean }) {
@@ -81,7 +82,7 @@ export function SectionIndexPage({
   const [pages, setPages] = useState<ContentPage[]>([]);
   const [error, setError] = useState(false);
   const navigation = useNavigation();
-  const topics = useTopics();
+  const areas = useAreas();
   const trackedPage = useRef<string | null>(null);
 
   useEffect(() => {
@@ -106,45 +107,54 @@ export function SectionIndexPage({
   return (
     <SiteLayout
       navigation={navigation}
-      topics={topics}
+      areas={areas}
       source={{ sourcePageType: "section_index", sourcePageSlug: section }}
     >
       {sitePage ? (
         section === "blog" ? (
-          <BlogIndex page={sitePage} posts={pages} topics={topics} />
+          <BlogIndex page={sitePage} posts={pages} areas={areas} />
         ) : (
           <section className="py-16 md:py-24">
             <Intro page={sitePage} />
-            <div className="mt-14 border-t border-black/20">
-              {pages.map((page, index) => (
-                <article
-                  key={page.slug}
-                  className="grid gap-4 border-b border-black/15 py-7 md:grid-cols-[5rem_minmax(0,1fr)_minmax(16rem,0.8fr)] md:gap-8 md:py-9"
-                >
-                  <p className="font-mono text-xs tracking-[0.14em] text-black/55">
-                    {String(index + 1).padStart(2, "0")}
-                  </p>
-                  <h2 className="font-display text-2xl font-semibold tracking-[-0.035em] md:text-3xl">
-                    <a
-                      href={`/${path}/${page.slug}`}
-                      onClick={() =>
-                        trackClick({
-                          sourcePageType: "section_index",
-                          sourcePageSlug: section,
-                          targetType: "internal_page",
-                          targetPageType: section === "topics" ? "topic" : "project",
-                          targetSlug: page.slug,
-                          destination: `/${path}/${page.slug}`,
-                        })
-                      }
-                    >
-                      {page.title}
-                    </a>
-                  </h2>
-                  <p className="max-w-xl leading-7 text-black/70">{page.summary}</p>
-                </article>
-              ))}
-            </div>
+            {section === "areas" ? (
+              <div className="mt-14">
+                <AreaList
+                  areas={pages}
+                  source={{ sourcePageType: "section_index", sourcePageSlug: section }}
+                />
+              </div>
+            ) : (
+              <div className="mt-14 border-t border-black/20">
+                {pages.map((page, index) => (
+                  <article
+                    key={page.slug}
+                    className="grid gap-4 border-b border-black/15 py-7 md:grid-cols-[5rem_minmax(0,1fr)_minmax(16rem,0.8fr)] md:gap-8 md:py-9"
+                  >
+                    <p className="font-mono text-xs tracking-[0.14em] text-black/55">
+                      {String(index + 1).padStart(2, "0")}
+                    </p>
+                    <h2 className="font-display text-2xl font-semibold tracking-[-0.035em] md:text-3xl">
+                      <a
+                        href={`/${path}/${page.slug}`}
+                        onClick={() =>
+                          trackClick({
+                            sourcePageType: "section_index",
+                            sourcePageSlug: section,
+                            targetType: "internal_page",
+                            targetPageType: "project",
+                            targetSlug: page.slug,
+                            destination: `/${path}/${page.slug}`,
+                          })
+                        }
+                      >
+                        {page.title}
+                      </a>
+                    </h2>
+                    <p className="max-w-xl leading-7 text-black/70">{page.summary}</p>
+                  </article>
+                ))}
+              </div>
+            )}
           </section>
         )
       ) : (
@@ -166,7 +176,7 @@ export function ArticlePage({
   const [page, setPage] = useState<ContentPage | null>(null);
   const [error, setError] = useState(false);
   const navigation = useNavigation();
-  const topics = useTopics();
+  const areas = useAreas();
   const trackedPage = useRef<string | null>(null);
 
   useEffect(() => {
@@ -190,7 +200,7 @@ export function ArticlePage({
   return (
     <SiteLayout
       navigation={navigation}
-      topics={topics}
+      areas={areas}
       source={
         page
           ? { sourcePageType: contentPageType(page.section), sourcePageSlug: page.slug }
@@ -198,7 +208,7 @@ export function ArticlePage({
       }
     >
       {page && section === "blog" ? (
-        <BlogArticle page={page} topics={topics} />
+        <BlogArticle page={page} areas={areas} />
       ) : page ? (
         <article className="max-w-3xl py-16 md:py-24">
           <a
@@ -253,12 +263,12 @@ export function ArticlePage({
 export function StaticPage({
   slug,
 }: {
-  slug: Exclude<SiteSlug, "topics" | "blog" | "projects">;
+  slug: Exclude<SiteSlug, "areas" | "blog" | "projects">;
 }) {
   const [page, setPage] = useState<SitePage | null>(null);
   const [error, setError] = useState(false);
   const navigation = useNavigation();
-  const topics = useTopics();
+  const areas = useAreas();
   const trackedPage = useRef<string | null>(null);
 
   useEffect(() => {
@@ -281,7 +291,7 @@ export function StaticPage({
   return (
     <SiteLayout
       navigation={navigation}
-      topics={topics}
+      areas={areas}
       source={
         page ? { sourcePageType: "static_page", sourcePageSlug: page.slug } : undefined
       }

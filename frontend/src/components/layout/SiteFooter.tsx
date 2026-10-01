@@ -8,10 +8,10 @@ import {
 } from "../../api/client";
 
 export function SiteFooter({
-  topics,
+  areas,
   source,
 }: {
-  topics: ContentPage[];
+  areas: ContentPage[];
   source?: PageSource;
 }) {
   const [navigation, setNavigation] = useState<FooterNavigation | null>(null);
@@ -31,38 +31,38 @@ export function SiteFooter({
             <div>
               <a
                 className="font-mono text-xs tracking-[0.12em] uppercase transition-colors hover:text-black/55"
-                href="/topics"
+                href="/areas"
                 onClick={() =>
                   source &&
                   trackClick({
                     ...source,
                     targetType: "internal_page",
                     targetPageType: "section_index",
-                    targetSlug: "topics",
-                    destination: "/topics",
+                    targetSlug: "areas",
+                    destination: "/areas",
                   })
                 }
               >
-                {navigation?.topics_title ?? "Topics"}
+                {navigation?.areas_title ?? "Topics"}
               </a>
-              <ul className="mt-4 space-y-2 border-l border-black/15 pl-3 text-left">
-                {topics.map((topic) => (
-                  <li key={topic.slug}>
+              <ul className="mt-4 space-y-2 text-left">
+                {areas.map((area) => (
+                  <li key={area.slug}>
                     <a
                       className="text-sm leading-5 text-black/45 transition-colors hover:text-black focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-black"
-                      href={`/topics/${topic.slug}`}
+                      href={`/areas/${area.slug}`}
                       onClick={() =>
                         source &&
                         trackClick({
                           ...source,
                           targetType: "internal_page",
-                          targetPageType: "topic",
-                          targetSlug: topic.slug,
-                          destination: `/topics/${topic.slug}`,
+                          targetPageType: "area",
+                          targetSlug: area.slug,
+                          destination: `/areas/${area.slug}`,
                         })
                       }
                     >
-                      {topic.title}
+                      {area.title}
                     </a>
                   </li>
                 ))}

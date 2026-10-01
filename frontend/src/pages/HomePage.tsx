@@ -3,8 +3,8 @@ import { useEffect, useRef, useState } from "react";
 import { trackClick, trackPageView } from "../analytics/events";
 import { getHomepageContent, type HomepageContent } from "../api/client";
 import { ContactForm } from "../components/ContactForm";
-import { formatPublishedDate, topicName } from "../components/blog/blogMetadata";
-import { TopicList } from "../components/TopicList";
+import { formatPublishedDate, areaName } from "../components/blog/blogMetadata";
+import { AreaList } from "../components/AreaList";
 import { SiteLayout } from "../components/layout/SiteLayout";
 
 function SectionHeading({
@@ -57,7 +57,7 @@ export function HomePage() {
   return (
     <SiteLayout
       navigation={content?.navigation ?? []}
-      topics={content?.topics ?? []}
+      areas={content?.areas ?? []}
       source={{ sourcePageType: "home", sourcePageSlug: "home" }}
     >
       <section
@@ -80,20 +80,20 @@ export function HomePage() {
           </p>
           <a
             className="mt-9 inline-flex items-center gap-3 bg-black px-5 py-3 font-mono text-xs tracking-[0.1em] text-white uppercase transition-colors hover:bg-black/75 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-black"
-            href={homepage?.primary_link_destination ?? "/topics"}
+            href={homepage?.primary_link_destination ?? "/areas"}
             onClick={() =>
               trackClick({
                 sourcePageType: "home",
                 sourcePageSlug: "home",
                 targetType: "internal_page",
-                destination: homepage?.primary_link_destination ?? "/topics",
+                destination: homepage?.primary_link_destination ?? "/areas",
               })
             }
           >
             {homepage?.primary_link_label} <span aria-hidden="true">→</span>
           </a>
         </div>
-        <aside className="border-l border-black/20 pl-5 md:self-end">
+        <aside className="md:self-end">
           <p className="font-mono text-[0.68rem] tracking-[0.14em] text-black/55 uppercase">
             {homepage?.aside_title}
           </p>
@@ -102,17 +102,17 @@ export function HomePage() {
       </section>
 
       <section
-        id="topics"
+        id="areas"
         className="border-t border-black/20 py-12 md:py-16"
-        aria-labelledby="topics-heading"
+        aria-labelledby="areas-heading"
       >
         <SectionHeading
-          eyebrow={homepage?.topics_eyebrow ?? ""}
-          title={homepage?.topics_title ?? ""}
-          copy={homepage?.topics_summary ?? ""}
+          eyebrow={homepage?.areas_eyebrow ?? ""}
+          title={homepage?.areas_title ?? ""}
+          copy={homepage?.areas_summary ?? ""}
         />
-        <TopicList
-          topics={content?.topics ?? []}
+        <AreaList
+          areas={content?.areas ?? []}
           source={{ sourcePageType: "home", sourcePageSlug: "home" }}
         />
       </section>
@@ -148,8 +148,8 @@ export function HomePage() {
                 <time dateTime={entry.published ?? undefined}>
                   {formatPublishedDate(entry.published)}
                 </time>
-                {entry.topics[0]
-                  ? ` · ${topicName(entry.topics[0], content?.topics ?? [])}`
+                {entry.areas[0]
+                  ? ` · ${areaName(entry.areas[0], content?.areas ?? [])}`
                   : null}
               </p>
               <h3 className="font-display text-xl font-medium tracking-[-0.025em] transition-colors group-hover:text-black/55 md:text-2xl">

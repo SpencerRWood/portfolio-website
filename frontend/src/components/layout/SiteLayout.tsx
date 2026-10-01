@@ -7,12 +7,12 @@ import { SiteHeader } from "./SiteHeader";
 
 export function SiteLayout({
   navigation,
-  topics,
+  areas,
   source,
   children,
 }: {
   navigation: SiteNavigationItem[];
-  topics: ContentPage[];
+  areas: ContentPage[];
   source?: PageSource;
   children: ReactNode;
 }) {
@@ -20,7 +20,7 @@ export function SiteLayout({
     <>
       <SiteHeader navigation={navigation} source={source} />
       <main className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-12">{children}</main>
-      <SiteFooter topics={topics} source={source} />
+      <SiteFooter areas={areas} source={source} />
     </>
   );
 }

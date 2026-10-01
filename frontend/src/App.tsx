@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { ArticlePage, SectionIndexPage, StaticPage } from "./pages/ContentPages";
 import { HomePage } from "./pages/HomePage";
 
-const sections = new Set(["topics", "blog", "projects"]);
+const sections = new Set(["areas", "blog", "projects"]);
 
 export function App() {
   const [pathname, setPathname] = useState(window.location.pathname);
@@ -22,7 +22,7 @@ export function App() {
   if (parts.length === 1 && sections.has(parts[0])) {
     return (
       <SectionIndexPage
-        section={parts[0] as "topics" | "blog" | "projects"}
+        section={parts[0] as "areas" | "blog" | "projects"}
         path={parts[0]}
       />
     );
@@ -33,7 +33,7 @@ export function App() {
   if (parts.length === 2 && sections.has(parts[0])) {
     return (
       <ArticlePage
-        section={parts[0] as "topics" | "blog" | "projects"}
+        section={parts[0] as "areas" | "blog" | "projects"}
         path={parts[0]}
         slug={parts[1]}
       />

@@ -1,13 +1,13 @@
 import type { ContentPage, SitePage } from "../../api/client";
 
-import { formatPublishedDate, selectFeaturedPost, topicName } from "./blogMetadata";
+import { formatPublishedDate, selectFeaturedPost, areaName } from "./blogMetadata";
 import { trackClick } from "../../analytics/events";
-import { TopicLinks } from "./TopicLinks";
+import { AreaLinks } from "./AreaLinks";
 
 interface BlogIndexProps {
   page: SitePage;
   posts: ContentPage[];
-  topics: ContentPage[];
+  areas: ContentPage[];
 }
 
 function PostDate({ value }: { value: string | null }) {
@@ -18,20 +18,14 @@ function PostDate({ value }: { value: string | null }) {
   );
 }
 
-function FeaturedVisual({
-  post,
-  topics,
-}: {
-  post: ContentPage;
-  topics: ContentPage[];
-}) {
-  const primaryTopic = post.topics[0] ? topicName(post.topics[0], topics) : "Writing";
+function FeaturedVisual({ post, areas }: { post: ContentPage; areas: ContentPage[] }) {
+  const primaryArea = post.areas[0] ? areaName(post.areas[0], areas) : "Writing";
 
   return (
     <div className="flex min-h-64 flex-col justify-between border border-black/20 bg-black/[0.025] p-6 md:min-h-full md:p-8">
       <div className="flex items-start justify-between gap-4 border-b border-black/15 pb-4">
         <p className="font-mono text-[0.68rem] tracking-[0.16em] text-black/55 uppercase">
-          {primaryTopic}
+          {primaryArea}
         </p>
         <p className="font-mono text-xs tracking-[0.12em] text-black/45">01</p>
       </div>
@@ -47,10 +41,10 @@ function FeaturedVisual({
   );
 }
 
-export function BlogIndex({ page, posts, topics }: BlogIndexProps) {
+export function BlogIndex({ page, posts, areas }: BlogIndexProps) {
   const featured = selectFeaturedPost(posts);
-  const representedTopics = topics.filter((topic) =>
-    posts.some((post) => post.topics.includes(topic.slug)),
+  const representedAreas = areas.filter((area) =>
+    posts.some((post) => post.areas.includes(area.slug)),
   );
 
   return (
@@ -68,18 +62,18 @@ export function BlogIndex({ page, posts, topics }: BlogIndexProps) {
         />
       </header>
 
-      {representedTopics.length ? (
+      {representedAreas.length ? (
         <nav
           className="mt-10 border-y border-black/15 py-5"
-          aria-label="Writing topics"
+          aria-label="Writing Topics"
         >
           <p className="font-mono text-[0.68rem] tracking-[0.14em] text-black/55 uppercase">
             Writing about
           </p>
           <div className="mt-3">
-            <TopicLinks
-              topics={topics}
-              slugs={representedTopics.map((topic) => topic.slug)}
+            <AreaLinks
+              areas={areas}
+              slugs={representedAreas.map((area) => area.slug)}
               source={{ sourcePageType: "section_index", sourcePageSlug: page.slug }}
             />
           </div>
@@ -94,9 +88,9 @@ export function BlogIndex({ page, posts, topics }: BlogIndexProps) {
           <article className="mt-5 grid border-y border-black/20 py-6 md:grid-cols-[minmax(0,1.2fr)_minmax(15rem,0.8fr)] md:gap-12 md:py-8">
             <div className="py-2">
               <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-                <TopicLinks
-                  topics={topics}
-                  slugs={featured.topics}
+                <AreaLinks
+                  areas={areas}
+                  slugs={featured.areas}
                   source={{
                     sourcePageType: "section_index",
                     sourcePageSlug: page.slug,
@@ -153,7 +147,7 @@ export function BlogIndex({ page, posts, topics }: BlogIndexProps) {
                 </span>
               </a>
             </div>
-            <FeaturedVisual post={featured} topics={topics} />
+            <FeaturedVisual post={featured} areas={areas} />
           </article>
         </section>
       ) : null}
@@ -181,9 +175,9 @@ export function BlogIndex({ page, posts, topics }: BlogIndexProps) {
                   <PostDate value={post.published} />
                 </p>
                 <div className="mt-3">
-                  <TopicLinks
-                    topics={topics}
-                    slugs={post.topics}
+                  <AreaLinks
+                    areas={areas}
+                    slugs={post.areas}
                     source={{
                       sourcePageType: "section_index",
                       sourcePageSlug: page.slug,

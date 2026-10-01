@@ -29,7 +29,7 @@ import { ArticlePage, SectionIndexPage, StaticPage } from "../src/pages/ContentP
 import { HomePage } from "../src/pages/HomePage";
 
 function contentPage(
-  section: "topics" | "blog" | "projects",
+  section: "areas" | "blog" | "projects",
   slug: string,
   title: string,
 ) {
@@ -40,11 +40,12 @@ function contentPage(
     summary: "A test page.",
     body_html: "<p>Article body.</p>",
     order: 1,
-    topics: [],
+    areas: [],
     nav: false,
     featured: false,
     published: section === "blog" ? "2026-09-18" : null,
     repository: null,
+    group: section === "areas" ? "Analytics" : null,
   };
 }
 
@@ -60,7 +61,7 @@ function sitePage(slug: string, title: string) {
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.getContentIndex.mockResolvedValue([]);
-  mocks.getFooterNavigation.mockResolvedValue({ topics_title: "Topics", items: [] });
+  mocks.getFooterNavigation.mockResolvedValue({ areas_title: "Topics", items: [] });
   mocks.getSiteNavigation.mockResolvedValue([]);
 });
 
@@ -72,7 +73,7 @@ describe("content-driven page analytics", () => {
       "simulating-realistic-website-traffic",
       "Simulating realistic website traffic",
     ],
-    ["topics", "topic", "data-generation", "Data Generation"],
+    ["areas", "area", "data-generation", "Data Generation"],
     ["projects", "project", "wood-reports", "Wood Reports"],
   ] as const)(
     "tracks loaded %s content metadata",
@@ -132,13 +133,13 @@ describe("content-driven page analytics", () => {
         hero_eyebrow: "Notes",
         title: "How analytical systems are built",
         summary: "Notes.",
-        primary_link_label: "Explore topics",
-        primary_link_destination: "/topics",
+        primary_link_label: "Explore Topics",
+        primary_link_destination: "/areas",
         aside_title: "Topics",
         aside_summary: "Data systems.",
-        topics_eyebrow: "Topics",
-        topics_title: "Topics",
-        topics_summary: "A few areas.",
+        areas_eyebrow: "Topics",
+        areas_title: "Topics",
+        areas_summary: "A few areas.",
         blog_eyebrow: "Writing",
         blog_title: "Selected writing",
         blog_summary: "Notes.",
@@ -149,7 +150,7 @@ describe("content-driven page analytics", () => {
         about_title: "About",
         about_summary: "About Spencer Wood.",
       },
-      topics: [],
+      areas: [],
       blog: [],
       projects: [],
       navigation: [],

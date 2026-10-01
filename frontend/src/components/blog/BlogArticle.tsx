@@ -1,15 +1,15 @@
 import type { ContentPage } from "../../api/client";
 
 import { formatPublishedDate } from "./blogMetadata";
-import { TopicLinks } from "./TopicLinks";
+import { AreaLinks } from "./AreaLinks";
 import { trackClick } from "../../analytics/events";
 
 export function BlogArticle({
   page,
-  topics,
+  areas,
 }: {
   page: ContentPage;
-  topics: ContentPage[];
+  areas: ContentPage[];
 }) {
   return (
     <article className="blog-article py-12 md:py-20">
@@ -31,9 +31,9 @@ export function BlogArticle({
           ← Writing
         </a>
         <div className="mt-10 flex flex-wrap items-center gap-x-3 gap-y-2">
-          <TopicLinks
-            topics={topics}
-            slugs={page.topics}
+          <AreaLinks
+            areas={areas}
+            slugs={page.areas}
             source={{ sourcePageType: "blog_article", sourcePageSlug: page.slug }}
           />
           <span className="text-black/30" aria-hidden="true">
@@ -66,9 +66,9 @@ export function BlogArticle({
           Filed under
         </p>
         <div className="mt-3">
-          <TopicLinks
-            topics={topics}
-            slugs={page.topics}
+          <AreaLinks
+            areas={areas}
+            slugs={page.areas}
             source={{ sourcePageType: "blog_article", sourcePageSlug: page.slug }}
           />
         </div>
