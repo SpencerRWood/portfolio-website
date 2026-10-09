@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.11.1 (2026-10-09)
+
+### Bug Fixes
+
+- Include architecture metadata in released artifacts
+  ([`362f052`](https://github.com/SpencerRWood/portfolio-website/commit/362f052c03a818608ac8bdfcb5c2ad740dc12b64))
+
+
 ## v0.11.0 (2026-10-01)
 
 ### Features
