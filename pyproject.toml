@@ -4,3 +4,8 @@ initiative_id = 436
 
 [tool.wood.workflow]
 output_directory = "/private/tmp"
+
+[tool.wood.architecture]
+domain = "applications"
+capability = "web-application"
+kind = "web-application"
