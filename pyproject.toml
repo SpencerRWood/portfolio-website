@@ -1,11 +1,21 @@
-[tool.wood.openproject]
-project_id = 5
-initiative_id = 436
+["tool"]
 
-[tool.wood.workflow]
-output_directory = "/private/tmp"
+["tool"."wood"]
 
-[tool.wood.architecture]
-domain = "applications"
-capability = "web-application"
-kind = "web-application"
+["tool"."wood"."openproject"]
+"project_id" = 5
+"initiative_id" = 436
+
+["tool"."wood"."workflow"]
+"output_directory" = "/private/tmp"
+
+["tool"."wood"."architecture"]
+"domain" = "applications"
+"capability" = "web-application"
+"kind" = "web-application"
+
+["tool"."wood"."branching"]
+"strategy" = "integration"
+"release_id" = 22
+"integration_branch" = "development"
+"scope_reference" = "https://projects.woodhost.cloud/work_packages/558 activity 1481; canonical fleet migration authorized 2026-10-15; protected-main merges remain separately approved."

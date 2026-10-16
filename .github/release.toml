@@ -1,25 +1,26 @@
-version = 1
+"version" = 1
 
-[project]
-working_directory = "backend"
+["project"]
+"working_directory" = "backend"
 
-[python]
-version = "3.14"
+["python"]
+"version" = "3.14"
 
-[validation]
-checks = ["mypy", "pytest", "pre-commit"]
+["validation"]
+"checks" = ["mypy", "pytest", "pre-commit"]
 
-[build]
-python_package = true
+["build"]
+"python_package" = true
 
-[node]
-directory = "frontend"
-version = "24"
-checks = ["lint", "typecheck", "test", "build"]
+["node"]
+"directory" = "frontend"
+"version" = "24"
+"checks" = ["lint", "typecheck", "test", "build"]
 
-[release]
-semantic_release = true
+["release"]
+"semantic_release" = true
+"tag_merged_commit" = true
 
-[container]
-publish = true
-image_name = "portfolio-website"
+["container"]
+"publish" = true
+"image_name" = "portfolio-website"
